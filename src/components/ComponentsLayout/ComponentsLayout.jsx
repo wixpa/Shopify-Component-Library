@@ -2,59 +2,88 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import styled from "styled-components";
 import Sidebar from "../Sidebar/Sidebar";
+import Header from "../Header/Header";
+import Footer from "../Footer/Footer";
 
-// ── Styled Components ──────────────────────────────────────────
+// ── Shell ──────────────────────────────────────────────────────
 
-const LayoutWrapper = styled.div`
+const Shell = styled.div`
    display: flex;
+   flex-direction: column;
    min-height: 100vh;
-   background-color: var(--color-bg-white);
-   overflow-x: hidden;
+   background: var(--color-bg-white);
 `;
 
-const MainContent = styled.main`
-   margin-left: var(--sidebar-width);
-   padding: 40px 48px;
-   width: 100%;
+// ── Middle row ─────────────────────────────────────────────────
+
+const MiddleRow = styled.div`
+   display: flex;
+   flex: 1;
+`;
+
+// ── Sidebar wrap — sticky ──────────────────────────────────────
+// top: 64px           → sticks just below the header (not behind it)
+// height: calc(100vh - 64px) → fills exactly the remaining viewport
+// align-self: flex-start     → REQUIRED for sticky to trigger
+
+const SidebarWrap = styled.aside`
+   width: var(--sidebar-width, 260px);
+   flex-shrink: 0;
+   position: sticky;
+   top: 66px;
+   height: calc(100vh - 64px);
+   align-self: flex-start;
+   border-right: 1px solid var(--color-sidebar-border);
+   background: var(--color-sidebar-bg);
+   z-index: 40;
+   overflow: hidden;
 
    @media (max-width: 900px) {
-      margin-left: 0;
-      padding: 80px 24px 40px;
-   }
-
-   /* Custom Scrollbar */
-   &::-webkit-scrollbar {
-      width: 8px;
-   }
-   &::-webkit-scrollbar-track {
-      background: transparent;
-   }
-   &::-webkit-scrollbar-thumb {
-      background-color: #b2bac2;
-      border-radius: 4px;
-      border: 2px solid transparent;
-      background-clip: content-box;
+      display: none;
    }
 `;
+
+// ── Main content ───────────────────────────────────────────────
+
+const MainContent = styled.main`
+   flex: 1;
+   min-width: 0;
+   padding: 2.5rem 3rem;
+   background: var(--color-bg-white);
+
+   @media (max-width: 1024px) {
+      padding: 2rem 2rem;
+   }
+
+   @media (max-width: 900px) {
+      padding: 5rem 1.5rem 2rem;
+   }
+
+   @media (max-width: 640px) {
+      padding: 4.5rem 1.25rem 2rem;
+   }
+`;
+
+// ── Mobile menu button ─────────────────────────────────────────
 
 const MenuBtn = styled.button`
    display: none;
    position: fixed;
-   top: 16px;
-   left: 16px;
+   top: 14px;
+   left: 14px;
    z-index: 200;
    background: white;
    border: 1px solid var(--color-sidebar-border);
-   padding: 8px 10px;
-   border-radius: 4px;
+   padding: 7px 10px;
+   border-radius: 6px;
    cursor: pointer;
    box-shadow: var(--shadow-sm);
-   font-size: 1rem;
+   font-size: 0.9rem;
    color: var(--color-nav-text);
-   transition: var(--transition-fast);
+   transition: background 0.14s ease;
 
    &:hover {
-      background-color: var(--color-bg-light);
+      background: var(--color-bg-light);
    }
 
    @media (max-width: 900px) {
@@ -68,23 +97,37 @@ const ComponentsLayout = () => {
    const [sidebarOpen, setSidebarOpen] = useState(false);
 
    return (
-      <LayoutWrapper>
-         {/* Mobile hamburger */}
-         <MenuBtn
-            aria-label="Toggle Navigation"
-            onClick={() => setSidebarOpen(true)}
-         >
-            <i className="fa-solid fa-bars"></i>
-         </MenuBtn>
+      <Shell>
+         {/* ── Row 1: Full-width Header ── */}
+         <Header />
 
-         {/* Sidebar */}
-         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+         {/* ── Row 2: Sticky sidebar + page content ── */}
+         <MiddleRow>
+            {/* Sticky sidebar */}
+            <SidebarWrap>
+               <Sidebar
+                  isOpen={sidebarOpen}
+                  onClose={() => setSidebarOpen(false)}
+               />
+            </SidebarWrap>
 
-         {/* Page content injected by React Router */}
-         <MainContent>
-            <Outlet />
-         </MainContent>
-      </LayoutWrapper>
+            {/* Mobile hamburger */}
+            <MenuBtn
+               aria-label="Toggle Navigation"
+               onClick={() => setSidebarOpen(true)}
+            >
+               <i className="fa-solid fa-bars"></i>
+            </MenuBtn>
+
+            {/* Page content — grows naturally */}
+            <MainContent>
+               <Outlet />
+            </MainContent>
+         </MiddleRow>
+
+         {/* ── Row 3: Full-width Footer ── */}
+         <Footer />
+      </Shell>
    );
 };
 

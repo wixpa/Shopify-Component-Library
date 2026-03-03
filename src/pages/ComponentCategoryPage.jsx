@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { getCategoryBySlug } from "../registry/componentRegistry";
 import { VariantsGrid } from "./ComponentsPage";
 
-// ── Styled Components ──────────────────────────────────────────
+// ── Page header ────────────────────────────────────────────────
 
 const PageHeader = styled.header`
    margin-bottom: 48px;
@@ -18,10 +18,16 @@ const PageTitle = styled.h1`
    font-family: var(--inter-font);
    display: flex;
    align-items: center;
+   flex-wrap: wrap;
    gap: 14px;
 
    @media (max-width: 768px) {
       font-size: 2rem;
+   }
+
+   @media (max-width: 480px) {
+      font-size: 1.6rem;
+      gap: 10px;
    }
 `;
 
@@ -34,6 +40,7 @@ const VariantBadge = styled.span`
    border-radius: var(--radius-full);
    font-family: var(--inter-font);
    vertical-align: middle;
+   flex-shrink: 0;
 `;
 
 const PageDescription = styled.p`
@@ -42,7 +49,14 @@ const PageDescription = styled.p`
    line-height: 1.6;
    max-width: 700px;
    font-family: var(--inter-font);
+   margin: 0;
+
+   @media (max-width: 640px) {
+      font-size: 1rem;
+   }
 `;
+
+// ── Not found state ────────────────────────────────────────────
 
 const NotFound = styled.div`
    text-align: center;
@@ -55,10 +69,16 @@ const NotFound = styled.div`
       color: var(--color-nav-text);
       margin-bottom: 12px;
    }
+
    p {
       color: var(--color-nav-text-secondary);
       font-size: 1rem;
       margin-bottom: 24px;
+      line-height: 1.6;
+   }
+
+   strong {
+      color: var(--color-nav-text);
    }
 `;
 
@@ -77,6 +97,19 @@ const BackBtn = styled.button`
    &:hover {
       background: #0066cc;
    }
+
+   &:focus-visible {
+      outline: 2px solid var(--color-nav-active);
+      outline-offset: 3px;
+   }
+`;
+
+// ── Divider ────────────────────────────────────────────────────
+
+const Divider = styled.hr`
+   border: none;
+   border-top: 1px solid var(--color-sidebar-border);
+   margin-bottom: 40px;
 `;
 
 // ── Component ─────────────────────────────────────────────────
@@ -85,6 +118,8 @@ const ComponentCategoryPage = () => {
    const { section } = useParams();
    const navigate = useNavigate();
    const category = getCategoryBySlug(section);
+
+   // ── Not found ──────────────────────────────────────────────
 
    if (!category) {
       return (
@@ -101,15 +136,23 @@ const ComponentCategoryPage = () => {
       );
    }
 
+   // ── Found ──────────────────────────────────────────────────
+
    return (
       <>
          <PageHeader>
             <PageTitle>
                {category.title}
-               <VariantBadge>{category.variants.length} variants</VariantBadge>
+               <VariantBadge>
+                  {category.variants.length}{" "}
+                  {category.variants.length === 1 ? "variant" : "variants"}
+               </VariantBadge>
             </PageTitle>
             <PageDescription>{category.description}</PageDescription>
          </PageHeader>
+
+         <Divider />
+
          <VariantsGrid category={category} />
       </>
    );

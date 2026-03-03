@@ -1,165 +1,200 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import styled from "styled-components";
 import { getAllCategories } from "../../registry/componentRegistry";
 
-// ── Styled Components ──────────────────────────────────────────
+// ── Sidebar root ───────────────────────────────────────────────
 
-const SidebarWrapper = styled.aside`
-   width: var(--sidebar-width);
-   height: 100vh;
-   position: fixed;
-   top: 0;
-   left: 0;
-   border-right: 1px solid var(--color-sidebar-border);
+const SidebarRoot = styled.nav`
+   width: 100%;
+   height: 100%;
    background: var(--color-sidebar-bg);
+   padding: 1.25rem 0;
    overflow-y: auto;
-   padding: 24px 0;
-   z-index: 100;
-   transition: transform 0.3s ease;
+
+   scrollbar-width: thin;
+   scrollbar-color: #d1d5db transparent;
 
    &::-webkit-scrollbar {
-      width: 8px;
+      width: 4px;
    }
    &::-webkit-scrollbar-track {
       background: transparent;
    }
    &::-webkit-scrollbar-thumb {
-      background-color: #b2bac2;
+      background: #d1d5db;
       border-radius: 4px;
-      border: 2px solid transparent;
-      background-clip: content-box;
    }
    &::-webkit-scrollbar-thumb:hover {
-      background-color: #6f7e8c;
-   }
-
-   @media (max-width: 900px) {
-      transform: ${({ $isOpen }) =>
-         $isOpen ? "translateX(0)" : "translateX(-100%)"};
-      box-shadow: ${({ $isOpen }) =>
-         $isOpen ? "5px 0 15px rgba(0,0,0,0.1)" : "none"};
+      background: #9ca3af;
    }
 `;
+
+// ── Nav group ──────────────────────────────────────────────────
 
 const NavGroup = styled.div`
-   margin-bottom: 8px;
+   margin-bottom: 4px;
 `;
 
-const NavGroupToggle = styled.div`
+const NavGroupToggle = styled.button`
    display: flex;
    align-items: center;
-   padding: 6px 16px 6px 24px;
-   font-size: 0.875rem;
-   font-weight: 600;
+   width: 100%;
+   padding: 7px 16px 7px 20px;
+   font-size: 0.82rem;
+   font-weight: 700;
    color: var(--color-nav-text);
+   background: none;
+   border: none;
    cursor: pointer;
-   transition: background-color 0.2s;
-   user-select: none;
+   text-align: left;
+   transition: background 0.15s ease;
    font-family: var(--inter-font);
 
    &:hover {
-      background-color: var(--color-nav-hover-bg);
+      background: var(--color-nav-hover-bg);
    }
 `;
 
 const Arrow = styled.i`
    margin-right: 8px;
-   font-size: 0.65rem;
+   font-size: 0.6rem;
    color: var(--color-nav-text-tertiary);
-   transition: transform 0.2s;
+   transition: transform 0.2s ease;
    transform: ${({ $expanded }) =>
       $expanded ? "rotate(90deg)" : "rotate(0deg)"};
+   flex-shrink: 0;
 `;
 
 const NavSubGroup = styled.div`
    display: ${({ $open }) => ($open ? "block" : "none")};
 `;
 
+// ── Section label ──────────────────────────────────────────────
+
+const NavLabel = styled.div`
+   font-size: 0.65rem;
+   font-weight: 700;
+   color: var(--color-nav-text-tertiary);
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+   padding: 14px 16px 5px 44px;
+   font-family: var(--inter-font);
+`;
+
+// ── All Components link ────────────────────────────────────────
+
 const AllComponentsLink = styled(NavLink)`
    display: flex;
    align-items: center;
-   padding: 7px 16px 7px 48px;
-   font-size: 0.875rem;
+   gap: 0.5rem;
+   padding: 7px 16px 7px 44px;
+   font-size: 0.82rem;
+   font-weight: 500;
    color: var(--color-nav-text-secondary);
    text-decoration: none;
    border-left: 3px solid transparent;
    font-family: var(--inter-font);
-   font-weight: 500;
    transition:
-      background-color 0.2s,
-      color 0.2s;
+      background 0.15s ease,
+      color 0.15s ease;
+
+   i {
+      font-size: 0.68rem;
+      opacity: 0.6;
+   }
 
    &:hover {
-      background-color: var(--color-nav-hover-bg);
+      background: var(--color-nav-hover-bg);
       color: var(--color-nav-text);
    }
 
    &.active {
       color: var(--color-nav-active);
-      background-color: var(--color-nav-active-bg);
+      background: var(--color-nav-active-bg);
       font-weight: 600;
-      border-left: 3px solid var(--color-nav-active);
-      padding-left: 45px;
+      border-left-color: var(--color-nav-active);
+      padding-left: 41px;
    }
 `;
 
-const NavCategory = styled.div`
-   font-size: 0.7rem;
-   font-weight: 700;
-   color: var(--color-nav-text-tertiary);
-   text-transform: uppercase;
-   letter-spacing: 0.09em;
-   padding: 16px 16px 6px 48px;
-   font-family: var(--inter-font);
-`;
+// ── Category leaf ──────────────────────────────────────────────
 
 const NavLeaf = styled(NavLink)`
-   padding: 6px 16px 6px 48px;
-   font-size: 0.875rem;
-   color: var(--color-nav-text-secondary);
-   text-decoration: none;
    display: flex;
    align-items: center;
    justify-content: space-between;
+   padding: 6px 16px 6px 44px;
+   font-size: 0.82rem;
+   font-weight: 500;
+   color: var(--color-nav-text-secondary);
+   text-decoration: none;
+   border-left: 3px solid transparent;
    font-family: var(--inter-font);
    transition:
-      background-color 0.2s,
-      color 0.2s;
+      background 0.15s ease,
+      color 0.15s ease;
 
    &:hover {
+      background: var(--color-nav-hover-bg);
       color: var(--color-nav-text);
-      background-color: var(--color-nav-hover-bg);
    }
 
    &.active {
       color: var(--color-nav-active);
-      background-color: var(--color-nav-active-bg);
+      background: var(--color-nav-active-bg);
       font-weight: 600;
-      border-left: 3px solid var(--color-nav-active);
-      padding-left: 45px;
+      border-left-color: var(--color-nav-active);
+      padding-left: 41px;
    }
 `;
 
 const VariantCount = styled.span`
-   font-size: 0.65rem;
+   font-size: 0.62rem;
    font-weight: 600;
    background: var(--color-badge-gray-bg);
    color: var(--color-nav-text-tertiary);
    padding: 1px 7px;
    border-radius: 999px;
    font-family: var(--inter-font);
+   flex-shrink: 0;
 `;
 
-const Overlay = styled.div`
-   display: ${({ $isOpen }) => ($isOpen ? "block" : "none")};
-   position: fixed;
-   inset: 0;
-   background-color: rgba(0, 0, 0, 0.5);
-   z-index: 90;
+// ── Mobile overlay ─────────────────────────────────────────────
 
-   @media (min-width: 901px) {
-      display: none;
+const Overlay = styled.div`
+   display: none;
+
+   @media (max-width: 900px) {
+      display: ${({ $isOpen }) => ($isOpen ? "block" : "none")};
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 90;
+   }
+`;
+
+// ── Mobile drawer ──────────────────────────────────────────────
+
+const MobileDrawer = styled.aside`
+   display: none;
+
+   @media (max-width: 900px) {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--sidebar-width, 260px);
+      height: 100vh;
+      background: var(--color-sidebar-bg);
+      border-right: 1px solid var(--color-sidebar-border);
+      z-index: 100;
+      transform: ${({ $isOpen }) =>
+         $isOpen ? "translateX(0)" : "translateX(-100%)"};
+      transition: transform 0.28s ease;
+      box-shadow: ${({ $isOpen }) =>
+         $isOpen ? "5px 0 20px rgba(0,0,0,0.12)" : "none"};
+      overflow-y: auto;
    }
 `;
 
@@ -169,39 +204,53 @@ const Sidebar = ({ isOpen, onClose }) => {
    const [groupOpen, setGroupOpen] = useState(true);
    const categories = getAllCategories();
 
+   // Shared nav markup — rendered directly, not as inner component
+   const navContent = (
+      <SidebarRoot>
+         <NavGroup>
+            <NavGroupToggle
+               onClick={() => setGroupOpen((p) => !p)}
+               aria-expanded={groupOpen}
+            >
+               <Arrow
+                  className="fa-solid fa-chevron-right"
+                  $expanded={groupOpen}
+               />
+               Components
+            </NavGroupToggle>
+
+            <NavSubGroup $open={groupOpen}>
+               <AllComponentsLink to="/components" end>
+                  <i className="fa-solid fa-grid-2"></i>
+                  All Components
+               </AllComponentsLink>
+
+               <NavLabel>Library</NavLabel>
+
+               {categories.map((cat) => (
+                  <NavLeaf
+                     key={cat.slug}
+                     to={`/components/${cat.slug}`}
+                     onClick={onClose}
+                  >
+                     {cat.title}
+                     <VariantCount>{cat.variants.length}</VariantCount>
+                  </NavLeaf>
+               ))}
+            </NavSubGroup>
+         </NavGroup>
+      </SidebarRoot>
+   );
+
    return (
       <>
+         {/* ── Desktop: plain in-flow nav ── */}
+         {/* Sticky behaviour is handled by SidebarWrap in ComponentsLayout */}
+         <div style={{ width: "100%", height: "100%" }}>{navContent}</div>
+
+         {/* ── Mobile: overlay + slide-in drawer ── */}
          <Overlay $isOpen={isOpen} onClick={onClose} />
-         <SidebarWrapper $isOpen={isOpen}>
-            <nav>
-               <NavGroup>
-                  <NavGroupToggle onClick={() => setGroupOpen((p) => !p)}>
-                     <Arrow
-                        className="fa-solid fa-chevron-right"
-                        $expanded={groupOpen}
-                     />
-                     Components
-                  </NavGroupToggle>
-
-                  <NavSubGroup $open={groupOpen}>
-                     {/* All Components */}
-                     <AllComponentsLink to="/components" end>
-                        All Components
-                     </AllComponentsLink>
-
-                     {/* One nav category per registry group */}
-                     <NavCategory>Library</NavCategory>
-
-                     {categories.map((cat) => (
-                        <NavLeaf key={cat.slug} to={`/components/${cat.slug}`}>
-                           {cat.title}
-                           <VariantCount>{cat.variants.length}</VariantCount>
-                        </NavLeaf>
-                     ))}
-                  </NavSubGroup>
-               </NavGroup>
-            </nav>
-         </SidebarWrapper>
+         <MobileDrawer $isOpen={isOpen}>{navContent}</MobileDrawer>
       </>
    );
 };

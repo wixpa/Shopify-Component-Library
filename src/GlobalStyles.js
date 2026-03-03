@@ -107,6 +107,9 @@ const GlobalStyles = createGlobalStyle`
         --color-vis-purple: #9c27b0;
         --color-vis-purple-light: #f3e5f5;
         --sidebar-width: 250px;
+
+        --sidebar-width: 260px;
+        --header-height: 64px
     }
 
     * {
@@ -150,6 +153,17 @@ const GlobalStyles = createGlobalStyle`
         border: none;
         background: none;
         font-family: inherit;
+    }
+
+    /* index.css or global.css */
+    html, body {
+        height: 100%;
+        overflow-x: hidden;
+        /* DO NOT set overflow-y: hidden or overflow-y: auto here */
+    }
+
+    #root {
+        min-height: 100%;
     }
 `;
 
