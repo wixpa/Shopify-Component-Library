@@ -88,6 +88,25 @@ const GlobalStyles = createGlobalStyle`
         /* ── Transitions ── */
         --transition-fast: all 0.2s ease;
         --transition-normal: all 0.3s ease;
+
+        /* ── Components Page ── */
+        --color-sidebar-bg: #ffffff;
+        --color-sidebar-border: #e5e8ec;
+        --color-nav-text: #0a1929;
+        --color-nav-text-secondary: #3e5060;
+        --color-nav-text-tertiary: #6f7e8c;
+        --color-nav-active: #007fff;
+        --color-nav-active-bg: #f0f7ff;
+        --color-nav-hover-bg: rgba(0, 0, 0, 0.04);
+        --color-badge-new-bg: #e8f5e9;
+        --color-badge-new-text: #1b5e20;
+        --color-badge-md2-bg: #f0f7ff;
+        --color-badge-md2-text: #007fff;
+        --color-badge-gray-bg: #f3f6f9;
+        --color-badge-gray-text: #3e5060;
+        --color-vis-purple: #9c27b0;
+        --color-vis-purple-light: #f3e5f5;
+        --sidebar-width: 250px;
     }
 
     * {
