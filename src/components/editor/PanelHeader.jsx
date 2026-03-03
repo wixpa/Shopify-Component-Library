@@ -1,5 +1,7 @@
 import styled from "styled-components";
 
+// ── Styled ─────────────────────────────────────────────────────
+
 const Wrap = styled.div`
    padding: 16px 16px 14px;
    border-bottom: 1px solid #f3f4f6;
@@ -21,6 +23,7 @@ const Title = styled.h2`
    font-family: var(--inter-font);
    letter-spacing: -0.01em;
    line-height: 1.3;
+   margin: 0;
 `;
 
 const Badge = styled.span`
@@ -42,21 +45,24 @@ const Desc = styled.p`
    color: #6b7280;
    line-height: 1.5;
    font-family: var(--inter-font);
+   margin: 0;
 `;
 
-const PanelHeader = ({ title, description, sectionLabel }) => {
-   const capitalize = (s) =>
-      s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " ") : "";
+// ── Util ───────────────────────────────────────────────────────
 
-   return (
-      <Wrap>
-         <TitleRow>
-            <Title>{title}</Title>
-            <Badge>{capitalize(sectionLabel)}</Badge>
-         </TitleRow>
-         <Desc>{description}</Desc>
-      </Wrap>
-   );
-};
+const capitalize = (s) =>
+   s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " ") : "";
+
+// ── Component ─────────────────────────────────────────────────
+
+const PanelHeader = ({ title, description, sectionLabel }) => (
+   <Wrap>
+      <TitleRow>
+         <Title>{title}</Title>
+         {sectionLabel && <Badge>{capitalize(sectionLabel)}</Badge>}
+      </TitleRow>
+      {description && <Desc>{description}</Desc>}
+   </Wrap>
+);
 
 export default PanelHeader;

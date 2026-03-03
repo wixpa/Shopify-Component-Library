@@ -1,16 +1,10 @@
 import styled from "styled-components";
 
+// ── Styled ─────────────────────────────────────────────────────
+
 const Wrap = styled.div`
    padding: 16px;
    border-bottom: 1px solid #f3f4f6;
-`;
-
-const Top = styled.div`
-   display: flex;
-   align-items: flex-start;
-   justify-content: space-between;
-   gap: 12px;
-   margin-bottom: 18px;
 `;
 
 const Title = styled.h3`
@@ -19,38 +13,48 @@ const Title = styled.h3`
    color: #111827;
    line-height: 1.35;
    font-family: var(--inter-font);
+   margin: 0 0 12px 0;
 `;
 
 const WatchBtn = styled.a`
    display: flex;
-   flex-direction: column;
    align-items: center;
-   gap: 3px;
+   justify-content: center;
+   gap: 8px;
+   width: 100%;
    background: #111827;
-   color: #fff;
-   padding: 8px 11px;
+   color: #ffffff;
+   padding: 9px 14px;
    border-radius: 8px;
-   font-size: 0.68rem;
-   font-weight: 700;
+   font-size: 0.78rem;
+   font-weight: 600;
    font-family: var(--inter-font);
    text-decoration: none;
-   flex-shrink: 0;
    text-align: center;
-   transition: background 0.15s;
-   line-height: 1.2;
+   transition: background 0.15s ease;
+   cursor: pointer;
+   margin-bottom: 18px;
+   box-sizing: border-box;
 
    i {
-      font-size: 0.85rem;
+      font-size: 0.72rem;
       color: #f59e0b;
-      margin-bottom: 2px;
    }
+
    &:hover {
       background: #1f2937;
+   }
+
+   &:focus-visible {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
    }
 `;
 
 const Steps = styled.ol`
    list-style: none;
+   margin: 0;
+   padding: 0;
    display: flex;
    flex-direction: column;
    gap: 12px;
@@ -76,6 +80,7 @@ const Num = styled.div`
    justify-content: center;
    font-family: var(--inter-font);
    margin-top: 1px;
+   flex-shrink: 0;
 `;
 
 const StepTitle = styled.div`
@@ -118,26 +123,28 @@ const STEPS = [
    },
 ];
 
+// ── Component ─────────────────────────────────────────────────
+
 const HowToSection = () => (
    <Wrap>
-      <Top>
-         <Title>
-            How to Add to
-            <br />
-            Your Shopify Theme
-         </Title>
-         <WatchBtn href="#" aria-label="Watch tutorial">
-            <i className="fa-solid fa-play"></i>
-            Watch
-            <br />
-            Tutorial
-         </WatchBtn>
-      </Top>
+      {/* Title — full width, above button */}
+      <Title>How to Add to Your Shopify Theme</Title>
 
-      <Steps>
+      {/* Watch button — full width row below title */}
+      <WatchBtn
+         href="#"
+         aria-label="Watch tutorial video"
+         onClick={(e) => e.preventDefault()}
+      >
+         <i className="fa-solid fa-play" aria-hidden="true"></i>
+         Watch Tutorial
+      </WatchBtn>
+
+      {/* Steps list */}
+      <Steps aria-label="Installation steps">
          {STEPS.map((step) => (
             <Step key={step.num}>
-               <Num>{step.num}</Num>
+               <Num aria-hidden="true">{step.num}</Num>
                <div>
                   <StepTitle>{step.title}</StepTitle>
                   <StepDesc>{step.desc}</StepDesc>

@@ -1,9 +1,13 @@
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
+
+// ── Animations ─────────────────────────────────────────────────
 
 const pop = keyframes`
-    0%,100% { transform: scale(1); }
-    50%      { transform: scale(0.95); }
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(0.95); }
 `;
+
+// ── Styled ─────────────────────────────────────────────────────
 
 const Wrap = styled.div`
    padding: 12px 16px;
@@ -18,7 +22,7 @@ const Primary = styled.button`
    width: 100%;
    padding: 10px 16px;
    background: ${({ $copied }) => ($copied ? "#059669" : "#111827")};
-   color: #fff;
+   color: #ffffff;
    border: none;
    border-radius: 8px;
    font-size: 0.85rem;
@@ -30,10 +34,21 @@ const Primary = styled.button`
    justify-content: center;
    gap: 8px;
    transition: background 0.25s ease;
-   animation: ${({ $copied }) => ($copied ? pop : "none")} 0.2s ease;
+
+   /* Only animate when copied fires — avoids running on every render */
+   ${({ $copied }) =>
+      $copied &&
+      css`
+         animation: ${pop} 0.2s ease;
+      `}
 
    &:hover {
       background: ${({ $copied }) => ($copied ? "#047857" : "#1f2937")};
+   }
+
+   &:focus-visible {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
    }
 `;
 
@@ -52,22 +67,36 @@ const Secondary = styled.button`
    align-items: center;
    justify-content: center;
    gap: 7px;
-   transition: all 0.15s;
+   transition: all 0.15s ease;
 
    &:hover {
       background: #f9fafb;
       border-color: #d1d5db;
       color: #111827;
    }
+
+   &:focus-visible {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+   }
 `;
+
+// ── Component ─────────────────────────────────────────────────
 
 const PanelActions = ({ onCopy, onReset, copied }) => (
    <Wrap>
-      <Primary $copied={copied} onClick={onCopy}>
+      <Primary
+         $copied={copied}
+         onClick={onCopy}
+         aria-label={
+            copied ? "Code copied to clipboard" : "Copy component code"
+         }
+      >
          <i className={`fa-solid ${copied ? "fa-check" : "fa-code"}`}></i>
          {copied ? "Code Copied to Clipboard!" : "Copy Code"}
       </Primary>
-      <Secondary onClick={onReset}>
+
+      <Secondary onClick={onReset} aria-label="Reset all settings to defaults">
          <i className="fa-solid fa-rotate-left"></i>
          Reset to Defaults
       </Secondary>
