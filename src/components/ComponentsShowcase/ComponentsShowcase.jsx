@@ -1,57 +1,94 @@
 import { useEffect, useRef } from "react";
-import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import styled, { keyframes } from "styled-components";
+import { getAllCategories } from "../../registry/componentRegistry";
 
-// ── Styled Components ──────────────────────────────────────────
+// ── Animations ─────────────────────────────────────────────────
+
+const fadeUp = keyframes`
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0);    }
+`;
+
+// ── Layout ─────────────────────────────────────────────────────
 
 const Section = styled.section`
-   background-color: var(--color-bg-white);
-   padding: var(--section-padding);
+   background: var(--color-bg-white);
+   padding: 6rem 0;
+
+   @media (min-width: 1024px) {
+      padding: 8rem 0;
+   }
 `;
 
 const Container = styled.div`
    max-width: var(--container-max-width);
    margin: 0 auto;
-   padding: var(--container-padding);
+   padding: 0 var(--container-padding-x, 1.5rem);
 `;
+
+// ── Section header ─────────────────────────────────────────────
 
 const SectionHeader = styled.header`
    text-align: center;
    margin-bottom: 4rem;
-   max-width: 800px;
-   margin-left: auto;
-   margin-right: auto;
+`;
+
+const SectionEyebrow = styled.div`
+   display: inline-flex;
+   align-items: center;
+   gap: 0.5rem;
+   background: rgba(37, 99, 235, 0.07);
+   border: 1px solid rgba(37, 99, 235, 0.15);
+   border-radius: var(--radius-full);
+   padding: 0.3rem 0.9rem;
+   font-size: 0.75rem;
+   font-weight: 700;
+   color: var(--color-primary-blue);
+   text-transform: uppercase;
+   letter-spacing: 0.08em;
+   font-family: var(--inter-font);
+   margin-bottom: 1.25rem;
+
+   i {
+      font-size: 0.7rem;
+   }
 `;
 
 const SectionTitle = styled.h2`
-   font-size: 2.5rem;
-   font-weight: 700;
+   font-size: clamp(1.9rem, 3.5vw, 2.75rem);
+   font-weight: 800;
    color: var(--color-primary-dark);
    margin-bottom: 1rem;
-   letter-spacing: -0.025em;
+   letter-spacing: -0.03em;
    font-family: var(--inter-font);
+   line-height: 1.1;
 `;
 
 const SectionSubtitle = styled.p`
-   color: var(--color-text-light);
-   font-size: 1.125rem;
-   line-height: 1.6;
-   max-width: 700px;
+   color: var(--color-text-secondary);
+   font-size: 1.05rem;
+   line-height: 1.7;
+   max-width: 580px;
    margin: 0 auto;
    font-family: var(--inter-font);
 `;
 
+// ── Grid ───────────────────────────────────────────────────────
+
 const Grid = styled.div`
    display: grid;
-   grid-template-columns: repeat(1, 1fr);
-   gap: 2rem;
-   margin-bottom: 4rem;
+   grid-template-columns: 1fr;
+   gap: 1.5rem;
+   margin-bottom: 3.5rem;
 
    @media (min-width: 640px) {
       grid-template-columns: repeat(2, 1fr);
    }
 
    @media (min-width: 1024px) {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.75rem;
    }
 `;
 
@@ -60,19 +97,18 @@ const Grid = styled.div`
 const Card = styled.article`
    background: var(--color-bg-white);
    border: 1px solid var(--color-border);
-   border-radius: 12px;
+   border-radius: 14px;
    overflow: hidden;
-   transition: var(--transition-fast);
    display: flex;
    flex-direction: column;
    cursor: pointer;
    opacity: 0;
-   transform: translateY(20px);
+   transform: translateY(22px);
    transition:
-      opacity 0.5s ease-out ${({ $delay }) => $delay}s,
-      transform 0.5s ease-out ${({ $delay }) => $delay}s,
-      box-shadow 0.2s ease,
-      border-color 0.2s ease;
+      opacity 0.5s ease ${({ $delay }) => $delay}s,
+      transform 0.5s ease ${({ $delay }) => $delay}s,
+      box-shadow 0.22s ease,
+      border-color 0.22s ease;
 
    &.visible {
       opacity: 1;
@@ -80,15 +116,19 @@ const Card = styled.article`
    }
 
    &:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 16px 48px rgba(15, 23, 42, 0.1);
       border-color: var(--color-border-hover);
+   }
+
+   &:hover .card-preview-inner {
+      transform: scale(1.02);
    }
 `;
 
+// ── Card Preview ───────────────────────────────────────────────
+
 const CardPreview = styled.div`
-   background-color: var(--color-bg-light);
-   height: 180px;
+   height: 200px;
    width: 100%;
    display: flex;
    align-items: center;
@@ -96,602 +136,665 @@ const CardPreview = styled.div`
    padding: 1.5rem;
    position: relative;
    overflow: hidden;
+   background: ${({ $bg }) => $bg || "var(--color-bg-light)"};
+   flex-shrink: 0;
 `;
 
-const CardContent = styled.div`
-   padding: 1.25rem;
+const PreviewInner = styled.div`
+   width: 100%;
+   height: 100%;
    display: flex;
+   align-items: center;
+   justify-content: center;
+   transition: transform 0.3s ease;
+`;
+
+// ── Card Footer ────────────────────────────────────────────────
+
+const CardFooter = styled.div`
+   padding: 1.1rem 1.25rem 1.25rem;
+   display: flex;
+   align-items: center;
    justify-content: space-between;
-   align-items: flex-start;
+   gap: 0.75rem;
+   border-top: 1px solid var(--color-border);
+   background: var(--color-bg-white);
 `;
 
 const CardInfo = styled.div`
-   h3 {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: var(--color-text-main);
-      margin-bottom: 0.25rem;
-      font-family: var(--inter-font);
-   }
-
-   span {
-      font-size: 0.875rem;
-      color: var(--color-text-light);
-      font-family: var(--inter-font);
-   }
+   flex: 1;
+   min-width: 0;
 `;
 
-const Tag = styled.span`
+const CardName = styled.h3`
+   font-size: 0.95rem;
+   font-weight: 700;
+   color: var(--color-text-main);
+   font-family: var(--inter-font);
+   margin-bottom: 0.2rem;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+`;
+
+const CardMeta = styled.span`
    font-size: 0.75rem;
-   font-weight: 600;
-   padding: 0.25rem 0.75rem;
+   color: var(--color-text-secondary);
+   font-family: var(--inter-font);
+`;
+
+const CardTag = styled.span`
+   display: inline-flex;
+   align-items: center;
+   gap: 5px;
+   font-size: 0.7rem;
+   font-weight: 700;
+   padding: 0.28rem 0.7rem;
    border-radius: var(--radius-full);
    white-space: nowrap;
    font-family: var(--inter-font);
-   background-color: ${({ $variant }) =>
-      $variant === "app-ui"
-         ? "var(--color-tag-app-bg)"
-         : "var(--color-tag-mkt-bg)"};
-   color: ${({ $variant }) =>
-      $variant === "app-ui"
-         ? "var(--color-tag-app-text)"
-         : "var(--color-tag-mkt-text)"};
+   flex-shrink: 0;
+   background: ${({ $bg }) => $bg};
+   color: ${({ $color }) => $color};
+
+   i {
+      font-size: 0.62rem;
+   }
 `;
 
-// ── Footer Button ──────────────────────────────────────────────
+const CardArrow = styled.div`
+   width: 28px;
+   height: 28px;
+   border-radius: 7px;
+   border: 1px solid var(--color-border);
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   font-size: 0.65rem;
+   color: var(--color-text-secondary);
+   flex-shrink: 0;
+   transition:
+      background 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease,
+      transform 0.15s ease;
+
+   ${Card}:hover & {
+      background: var(--color-primary-blue);
+      border-color: var(--color-primary-blue);
+      color: #ffffff;
+      transform: translateX(2px);
+   }
+`;
+
+// ── Footer CTA ─────────────────────────────────────────────────
 
 const FooterAction = styled.div`
-   text-align: center;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 0.85rem;
 `;
 
-const BtnPrimary = styled.button`
-   background-color: var(--color-btn-dark);
-   color: var(--color-text-white);
-   padding: 0.875rem 2rem;
-   border-radius: var(--radius-md);
-   font-weight: 600;
-   font-size: 1rem;
+const FooterHelp = styled.p`
+   font-size: 0.82rem;
+   color: var(--color-text-secondary);
    font-family: var(--inter-font);
-   transition: var(--transition-fast);
+
+   span {
+      color: var(--color-primary-blue);
+      font-weight: 600;
+      cursor: pointer;
+      &:hover {
+         text-decoration: underline;
+      }
+   }
+`;
+
+const BtnBrowse = styled.button`
+   display: inline-flex;
+   align-items: center;
+   gap: 0.55rem;
+   background: var(--color-primary-dark);
+   color: #ffffff;
+   padding: 0.82rem 2rem;
+   border-radius: var(--radius-md);
+   border: 1px solid var(--color-primary-dark);
+   font-weight: 600;
+   font-size: 0.92rem;
+   font-family: var(--inter-font);
+   cursor: pointer;
+   transition:
+      background 0.15s ease,
+      transform 0.12s ease,
+      box-shadow 0.15s ease;
+
+   i {
+      font-size: 0.8rem;
+      transition: transform 0.15s ease;
+   }
 
    &:hover {
-      background-color: var(--color-btn-dark-hover);
+      background: #1e293b;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+      i {
+         transform: translateX(2px);
+      }
+   }
+   &:active {
+      transform: translateY(0);
    }
 `;
 
+// ══════════════════════════════════════════════════════════════
 // ── Preview Illustrations ──────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
 
-// 1. Alerts Preview
-const PreviewAlerts = styled.div`
-   display: flex;
-   flex-direction: column;
-   gap: 8px;
-   width: 80%;
-`;
-const AlertItem = styled.div`
-   display: flex;
-   align-items: center;
-   gap: 8px;
-   background: white;
-   padding: 6px;
-   border-radius: 4px;
-   box-shadow: var(--shadow-sm);
-`;
-const AlertIcon = styled.div`
-   width: 16px;
-   height: 16px;
-   border-radius: 4px;
-   background-color: ${({ $color }) =>
-      $color || "var(--color-primary-blue-light)"};
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   color: white;
-   font-size: 8px;
-   flex-shrink: 0;
-   transition: transform 0.2s;
+// ── 1. Headers Preview ─────────────────────────────────────────
 
-   ${AlertItem}:hover & {
-      transform: scale(1.1);
-   }
-`;
-const AlertContent = styled.div`
-   flex: 1;
-`;
-const AlertLine1 = styled.div`
-   height: 4px;
-   width: 40%;
-   background: var(--color-icon);
-   margin-bottom: 3px;
-   border-radius: 2px;
-`;
-const AlertLine2 = styled.div`
-   height: 3px;
-   width: 90%;
-   background: var(--color-border);
-   border-radius: 2px;
-`;
-
-const AlertsPreview = () => (
-   <PreviewAlerts>
-      {[
-         { icon: "fa-check", color: "var(--color-primary-blue-light)" },
-         { icon: "fa-info", color: "var(--color-primary-blue-light)" },
-         {
-            icon: "fa-triangle-exclamation",
-            color: "var(--color-primary-blue-light)",
-         },
-      ].map((item, i) => (
-         <AlertItem key={i}>
-            <AlertIcon $color={item.color}>
-               <i className={`fa-solid ${item.icon}`}></i>
-            </AlertIcon>
-            <AlertContent>
-               <AlertLine1 />
-               <AlertLine2 />
-            </AlertContent>
-         </AlertItem>
-      ))}
-   </PreviewAlerts>
-);
-
-// 2. 404 Preview
-const Preview404Box = styled.div`
-   background: white;
-   width: 90%;
-   height: 80%;
-   border-radius: 6px;
-   box-shadow: var(--shadow-sm);
-   display: flex;
-   flex-direction: column;
-   justify-content: center;
-   padding: 20px;
-`;
-const P404Text = styled.div`
-   color: var(--color-primary-blue-light);
-   font-size: 10px;
-   font-weight: bold;
-   margin-bottom: 4px;
-   font-family: var(--inter-font);
-`;
-const P404Head = styled.div`
-   height: 6px;
-   width: 60px;
-   background: #1f2937;
-   margin-bottom: 8px;
-   border-radius: 2px;
-`;
-const P404Line = styled.div`
-   height: 4px;
-   background: var(--color-border);
-   margin-bottom: 4px;
-   border-radius: 2px;
-   width: ${({ $w }) => $w || "100%"};
-`;
-const P404Btn = styled.div`
-   width: 60px;
-   height: 14px;
-   background: #1f2937;
-   border-radius: 10px;
-   margin-top: 8px;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   &::after {
-      content: "";
-      width: 30px;
-      height: 2px;
-      background: #4b5563;
-      border-radius: 1px;
-   }
-`;
-
-const Preview404 = () => (
-   <Preview404Box>
-      <P404Text>404</P404Text>
-      <P404Head />
-      <P404Line $w="80%" />
-      <P404Line $w="60%" />
-      <P404Btn />
-   </Preview404Box>
-);
-
-// 3. Modals Preview
-const PreviewModalsBox = styled.div`
-   position: relative;
-   width: 80%;
-   height: 80%;
-   background: var(--color-border);
-   border-radius: 6px;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-`;
-const ModalBox = styled.div`
-   width: 70%;
-   background: white;
-   border-radius: 4px;
-   padding: 10px;
-   box-shadow: var(--shadow-md);
-`;
-const ModalLine = styled.div`
-   height: ${({ $h }) => $h || "4px"};
-   background: ${({ $bg }) => $bg || "var(--color-border)"};
-   width: ${({ $w }) => $w || "100%"};
-   margin-bottom: 4px;
-   border-radius: 2px;
-`;
-const ModalBtnGroup = styled.div`
-   display: flex;
-   justify-content: flex-end;
-   gap: 4px;
-   margin-top: 8px;
-`;
-const ModalBtn = styled.div`
-   width: ${({ $primary }) => ($primary ? "30px" : "20px")};
-   height: 6px;
-   border-radius: 2px;
-   background: ${({ $primary }) =>
-      $primary ? "var(--color-primary-blue-light)" : "var(--color-border)"};
-`;
-
-const ModalsPreview = () => (
-   <PreviewModalsBox>
-      <ModalBox>
-         <ModalLine $h="40px" $bg="#f3f4f6" $w="100%" />
-         <ModalLine $bg="#374151" $w="80%" />
-         <ModalLine />
-         <ModalLine $w="60%" />
-         <ModalBtnGroup>
-            <ModalBtn />
-            <ModalBtn $primary />
-         </ModalBtnGroup>
-      </ModalBox>
-   </PreviewModalsBox>
-);
-
-// 4. Forms Preview
-const PreviewFormsBox = styled.div`
-   background: white;
-   width: 90%;
-   padding: 15px;
-   border-radius: 6px;
-   box-shadow: var(--shadow-sm);
-`;
-const FormRow = styled.div`
-   display: flex;
-   gap: 8px;
-   margin-bottom: 8px;
-`;
-const FormGroup = styled.div`
-   flex: 1;
-   margin-bottom: ${({ $mb }) => $mb || "0"};
-`;
-const FormLabel = styled.div`
-   height: 3px;
-   width: ${({ $w }) => $w || "30%"};
-   background: ${({ $color }) => $color || "#374151"};
-   margin-bottom: 3px;
-   border-radius: 1px;
-`;
-const FormInput = styled.div`
-   height: 12px;
-   border-radius: 2px;
+const PvHeader = styled.div`
    width: 100%;
-   border: 1px solid
-      ${({ $active }) =>
-         $active ? "var(--color-primary-blue-light)" : "var(--color-border)"};
-   box-shadow: ${({ $active }) => ($active ? "0 0 0 1px #dbeafe" : "none")};
+   background: #ffffff;
+   border-radius: 8px;
+   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
+   overflow: hidden;
+   border: 1px solid #e5e7eb;
 `;
-const FormBtn = styled.div`
-   width: 20px;
-   height: 6px;
-   background: #1f2937;
+const PvHeaderBar = styled.div`
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   padding: 8px 12px;
+   border-bottom: 1px solid #f3f4f6;
+   background: #fff;
+`;
+const PvLogo = styled.div`
+   width: 48px;
+   height: 7px;
+   background: #0f172a;
+   border-radius: 3px;
+`;
+const PvNavLinks = styled.div`
+   display: flex;
+   gap: 8px;
+   align-items: center;
+`;
+const PvNavLink = styled.div`
+   width: 22px;
+   height: 3px;
+   background: #d1d5db;
    border-radius: 2px;
-   margin-left: auto;
+`;
+const PvBtn = styled.div`
+   width: 36px;
+   height: 10px;
+   background: ${({ $bg }) => $bg || "#2563eb"};
+   border-radius: 4px;
+`;
+const PvHeaderAlt = styled(PvHeaderBar)`
+   background: #0f172a;
+   border-bottom: none;
    margin-top: 4px;
 `;
+const PvLogoWhite = styled(PvLogo)`
+   background: #ffffff;
+`;
+const PvNavLinkWhite = styled(PvNavLink)`
+   background: #475569;
+`;
 
-const FormsPreview = () => (
-   <PreviewFormsBox>
-      <FormGroup $mb="8px">
-         <FormLabel $w="40px" />
-         <FormInput />
-      </FormGroup>
-      <FormRow>
-         <FormGroup>
-            <FormLabel $color="var(--color-primary-blue-light)" />
-            <FormInput $active />
-         </FormGroup>
-         <FormGroup>
-            <FormLabel />
-            <FormInput />
-         </FormGroup>
-      </FormRow>
-      <FormGroup $mb="8px">
-         <FormLabel />
-         <FormInput />
-      </FormGroup>
-      <FormBtn />
-   </PreviewFormsBox>
+const HeadersPreview = () => (
+   <PvHeader>
+      {/* Classic white */}
+      <PvHeaderBar>
+         <PvLogo />
+         <PvNavLinks>
+            <PvNavLink />
+            <PvNavLink />
+            <PvNavLink />
+         </PvNavLinks>
+         <PvBtn />
+      </PvHeaderBar>
+      {/* Dark */}
+      <PvHeaderAlt>
+         <PvLogoWhite />
+         <PvNavLinks>
+            <PvNavLinkWhite />
+            <PvNavLinkWhite />
+            <PvNavLinkWhite />
+         </PvNavLinks>
+         <PvBtn $bg="#4f46e5" />
+      </PvHeaderAlt>
+      {/* With search */}
+      <PvHeaderBar style={{ background: "#f9fafb" }}>
+         <PvLogo />
+         <div
+            style={{
+               flex: 1,
+               margin: "0 10px",
+               height: "10px",
+               background: "#f3f4f6",
+               borderRadius: "4px",
+               border: "1px solid #e5e7eb",
+            }}
+         />
+         <PvBtn $bg="#0f172a" />
+      </PvHeaderBar>
+   </PvHeader>
 );
 
-// 5. Heros Preview
-const PreviewHerosBox = styled.div`
-   background: white;
-   width: 90%;
-   height: 85%;
-   border-radius: 6px;
-   box-shadow: var(--shadow-sm);
-   display: flex;
-   flex-direction: column;
+// ── 2. Hero Preview ────────────────────────────────────────────
+
+const PvHeroWrap = styled.div`
+   width: 100%;
+   background: #fff;
+   border-radius: 8px;
+   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
+   border: 1px solid #e5e7eb;
    overflow: hidden;
 `;
-const HeroNav = styled.div`
-   height: 12px;
+const PvHeroNav = styled.div`
+   height: 14px;
+   background: #f9fafb;
    border-bottom: 1px solid #f3f4f6;
    display: flex;
    align-items: center;
    padding: 0 10px;
    justify-content: space-between;
 `;
-const HeroLogo = styled.div`
-   width: ${({ $w }) => $w || "8px"};
-   height: 8px;
-   background: ${({ $bg }) => $bg || "var(--color-primary-blue-light)"};
-   border-radius: 2px;
-`;
-const HeroLinks = styled.div`
-   display: flex;
-   gap: 4px;
-`;
-const HeroLink = styled.div`
-   width: 15px;
-   height: 2px;
-   background: var(--color-border);
-`;
-const HeroBody = styled.div`
-   padding: 15px;
-   text-align: center;
+const PvHeroBody = styled.div`
+   padding: 10px 12px 12px;
    display: flex;
    flex-direction: column;
    align-items: center;
+   gap: 5px;
 `;
-const HeroTitleBar = styled.div`
-   width: ${({ $w }) => $w || "60%"};
-   height: 4px;
-   background: #1f2937;
-   margin-bottom: 4px;
+const PvHeroBadge = styled.div`
+   width: 50px;
+   height: 5px;
+   background: #dbeafe;
+   border-radius: 8px;
+`;
+const PvHeroTitle = styled.div`
+   width: ${({ $w }) => $w || "70%"};
+   height: ${({ $h }) => $h || "5px"};
+   background: ${({ $bg }) => $bg || "#0f172a"};
    border-radius: 2px;
 `;
-const HeroSub = styled.div`
-   width: 80%;
-   height: 2px;
-   background: var(--color-border);
-   margin-bottom: 8px;
+const PvHeroCta = styled.div`
+   display: flex;
+   gap: 4px;
+   margin-top: 2px;
 `;
-const HeroCTA = styled.div`
-   width: 30px;
-   height: 8px;
-   background: var(--color-primary-blue-light);
-   border-radius: 2px;
-   margin-bottom: 10px;
+const PvHeroCtaBtn = styled.div`
+   width: 28px;
+   height: 7px;
+   background: ${({ $bg }) => $bg || "#2563eb"};
+   border-radius: 3px;
 `;
-const HeroImg = styled.div`
+const PvHeroStats = styled.div`
+   display: flex;
+   gap: 8px;
+   margin-top: 3px;
+   padding-top: 5px;
+   border-top: 1px solid #f3f4f6;
    width: 100%;
-   height: 40px;
-   background: #f3f4f6;
-   border-radius: 4px;
+   justify-content: center;
+`;
+const PvStat = styled.div`
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 2px;
+`;
+const PvStatVal = styled.div`
+   width: 18px;
+   height: 4px;
+   background: #0f172a;
+   border-radius: 2px;
+`;
+const PvStatLbl = styled.div`
+   width: 14px;
+   height: 2px;
+   background: #d1d5db;
+   border-radius: 1px;
 `;
 
-const HerosPreview = () => (
-   <PreviewHerosBox>
-      <HeroNav>
-         <HeroLogo />
-         <HeroLinks>
-            <HeroLink />
-            <HeroLink />
-            <HeroLink />
-         </HeroLinks>
-         <HeroLogo $bg="var(--color-border)" $w="12px" />
-      </HeroNav>
-      <HeroBody>
-         <HeroTitleBar />
-         <HeroTitleBar $w="40%" />
-         <HeroSub />
-         <HeroCTA />
-         <HeroImg />
-      </HeroBody>
-   </PreviewHerosBox>
+const HeroPreview = () => (
+   <PvHeroWrap>
+      <PvHeroNav>
+         <PvLogo style={{ width: 30 }} />
+         <PvNavLinks>
+            <PvNavLink />
+            <PvNavLink />
+            <PvNavLink />
+         </PvNavLinks>
+         <PvNavLink style={{ width: 16 }} />
+      </PvHeroNav>
+      <PvHeroBody>
+         <PvHeroBadge />
+         <PvHeroTitle />
+         <PvHeroTitle $w="50%" $h="4px" $bg="#7c3aed" />
+         <PvHeroTitle $w="55%" $h="3px" $bg="#9ca3af" />
+         <PvHeroTitle $w="80%" $h="2px" $bg="#e5e7eb" />
+         <PvHeroCta>
+            <PvHeroCtaBtn />
+            <PvHeroCtaBtn $bg="#f3f4f6" />
+         </PvHeroCta>
+         <PvHeroStats>
+            {[0, 1, 2].map((i) => (
+               <PvStat key={i}>
+                  <PvStatVal />
+                  <PvStatLbl />
+               </PvStat>
+            ))}
+         </PvHeroStats>
+      </PvHeroBody>
+   </PvHeroWrap>
 );
 
-// 6. Portfolio Preview
-const PreviewPortfolioGrid = styled.div`
-   width: 90%;
-   display: grid;
-   grid-template-columns: 1fr 1fr;
-   gap: 10px;
+// ── 3. Product Cards Preview ────────────────────────────────────
+
+const PvProductWrap = styled.div`
+   width: 100%;
+   background: #fff;
+   border-radius: 8px;
+   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
+   border: 1px solid #e5e7eb;
+   padding: 10px;
+   display: flex;
+   flex-direction: column;
+   gap: 6px;
 `;
-const PortCard = styled.div`
-   background: white;
-   padding: 6px;
-   border-radius: 4px;
-   box-shadow: var(--shadow-sm);
-`;
-const PortImg = styled.div`
-   height: 25px;
-   background: #f3f4f6;
-   border-radius: 2px;
-   margin-bottom: 4px;
-`;
-const PortLine = styled.div`
-   height: 2px;
+const PvProductTitle = styled.div`
+   width: 55px;
+   height: 5px;
+   background: #0f172a;
    border-radius: 2px;
    margin-bottom: 2px;
-   width: ${({ $w }) => $w || "40%"};
-   background: ${({ $muted }) => ($muted ? "var(--color-border)" : "#374151")};
 `;
-
-const PortfolioPreview = () => (
-   <PreviewPortfolioGrid>
-      {[0, 1, 2, 3].map((i) => (
-         <PortCard key={i}>
-            <PortImg />
-            <PortLine />
-            <PortLine $w="80%" $muted />
-         </PortCard>
-      ))}
-   </PreviewPortfolioGrid>
-);
-
-// 7. Dropdowns Preview
-const PreviewDropdownBox = styled.div`
-   background: white;
-   width: 50%;
-   padding: 10px;
-   border-radius: 6px;
-   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-   border: 1px solid #f3f4f6;
-`;
-const DDHeader = styled.div`
+const PvProductRow = styled.div`
    display: flex;
-   justify-content: flex-end;
-   margin-bottom: 8px;
+   gap: 6px;
 `;
-const DDTrigger = styled.div`
-   width: 20px;
-   height: 6px;
-   border: 1px solid #93c5fd;
+const PvProductCard = styled.div`
+   flex: 1;
+   background: #f9fafb;
+   border-radius: 5px;
+   border: 1px solid #f3f4f6;
+   overflow: hidden;
+`;
+const PvProductImg = styled.div`
+   height: 38px;
+   background: ${({ $bg }) => $bg || "#e5e7eb"};
+   position: relative;
+`;
+const PvProductBadge = styled.div`
+   position: absolute;
+   top: 3px;
+   left: 3px;
+   width: 12px;
+   height: 5px;
+   background: #ef4444;
    border-radius: 2px;
 `;
-const DDItem = styled.div`
+const PvProductBody = styled.div`
+   padding: 4px 5px;
    display: flex;
-   align-items: center;
-   gap: 6px;
-   margin-bottom: 6px;
+   flex-direction: column;
+   gap: 2px;
 `;
-const DDDot = styled.div`
-   width: 4px;
-   height: 4px;
-   border-radius: 50%;
-   background: ${({ $active }) =>
-      $active ? "var(--color-primary-blue-light)" : "#9ca3af"};
+const PvProductLine = styled.div`
+   height: ${({ $h }) => $h || "3px"};
+   width: ${({ $w }) => $w || "70%"};
+   background: ${({ $bg }) => $bg || "#d1d5db"};
+   border-radius: 1px;
 `;
-const DDLine = styled.div`
-   height: 2px;
+const PvAddBtn = styled.div`
+   height: 7px;
    width: 100%;
-   background: ${({ $active }) =>
-      $active ? "var(--color-primary-blue-light)" : "var(--color-border)"};
+   background: #0f172a;
+   border-radius: 2px;
+   margin-top: 2px;
 `;
 
-const DropdownsPreview = () => (
-   <PreviewDropdownBox>
-      <DDHeader>
-         <DDTrigger />
-      </DDHeader>
-      <DDItem>
-         <DDLine $w="40%" />
-      </DDItem>
-      {[false, false, false, true].map((active, i) => (
-         <DDItem key={i}>
-            <DDDot $active={active} />
-            <DDLine $active={active} />
-         </DDItem>
-      ))}
-   </PreviewDropdownBox>
+const ProductCardsPreview = () => (
+   <PvProductWrap>
+      <PvProductTitle />
+      <PvProductRow>
+         {["#dbeafe", "#fce7f3", "#dcfce7"].map((bg, i) => (
+            <PvProductCard key={i}>
+               <PvProductImg $bg={bg} style={{ position: "relative" }}>
+                  <PvProductBadge />
+               </PvProductImg>
+               <PvProductBody>
+                  <PvProductLine $w="80%" $bg="#374151" $h="3px" />
+                  <PvProductLine $w="50%" />
+                  <PvProductLine $w="40%" $bg="#2563eb" $h="3px" />
+                  <PvAddBtn />
+               </PvProductBody>
+            </PvProductCard>
+         ))}
+      </PvProductRow>
+   </PvProductWrap>
 );
 
-// 8. Buttons Preview
-const PreviewButtonsBox = styled.div`
+// ── 4. Coming Soon — Templates Preview ─────────────────────────
+
+const PvComingSoon = styled.div`
    display: flex;
+   flex-direction: column;
    align-items: center;
    justify-content: center;
+   gap: 6px;
    width: 100%;
    height: 100%;
 `;
-const BtnMock = styled.div`
-   background-color: var(--color-primary-blue-light);
-   color: white;
-   padding: 8px 16px;
-   border-radius: 4px;
-   font-size: 10px;
+const PvCsIcon = styled.div`
+   width: 32px;
+   height: 32px;
+   border-radius: 10px;
+   background: ${({ $bg }) => $bg || "rgba(37,99,235,0.1)"};
    display: flex;
    align-items: center;
-   gap: 6px;
-   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+   justify-content: center;
+   font-size: 0.88rem;
+   color: ${({ $color }) => $color || "var(--color-primary-blue)"};
+   margin-bottom: 2px;
+`;
+const PvCsLabel = styled.div`
+   font-size: 0.72rem;
+   font-weight: 700;
    font-family: var(--inter-font);
-   i {
-      font-size: 8px;
-   }
+   color: var(--color-text-secondary);
+   letter-spacing: 0.05em;
+`;
+const PvCsBadge = styled.div`
+   font-size: 0.62rem;
+   font-weight: 700;
+   background: rgba(234, 88, 12, 0.1);
+   color: #ea580c;
+   padding: 2px 8px;
+   border-radius: 999px;
+   font-family: var(--inter-font);
+   text-transform: uppercase;
+   letter-spacing: 0.07em;
 `;
 
-const ButtonsPreview = () => (
-   <PreviewButtonsBox>
-      <BtnMock>
-         <i className="fa-regular fa-square-check"></i>
-         Buttons
-      </BtnMock>
-   </PreviewButtonsBox>
+const ComingSoonPreview = ({ icon, iconBg, iconColor, label }) => (
+   <PvComingSoon>
+      <PvCsIcon $bg={iconBg} $color={iconColor}>
+         <i className={`fa-solid ${icon}`}></i>
+      </PvCsIcon>
+      <PvCsLabel>{label}</PvCsLabel>
+      <PvCsBadge>Coming Soon</PvCsBadge>
+   </PvComingSoon>
 );
 
-// ── Components Data ────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// ── Showcase Data — driven by registry + planned items ────────
+// ══════════════════════════════════════════════════════════════
 
-const componentsData = [
+const SHOWCASE = [
+   // ── Live items (from registry) ─────────────────────────
    {
-      id: 1,
-      name: "Alerts",
-      count: "9 components",
-      tag: "app-ui",
-      preview: <AlertsPreview />,
+      id: "headers",
+      name: "Headers",
+      count: 3,
+      tag: {
+         label: "Navigation",
+         bg: "rgba(37,99,235,0.08)",
+         color: "#2563eb",
+      },
+      bg: "#f0f4ff",
+      path: "/components/headers",
+      preview: <HeadersPreview />,
+      live: true,
    },
    {
-      id: 2,
-      name: "404 Pages",
-      count: "7 components",
-      tag: "marketing",
-      preview: <Preview404 />,
+      id: "hero",
+      name: "Hero Sections",
+      count: 3,
+      tag: { label: "Landing", bg: "rgba(124,58,237,0.08)", color: "#7c3aed" },
+      bg: "#f5f0ff",
+      path: "/components/hero",
+      preview: <HeroPreview />,
+      live: true,
    },
    {
-      id: 3,
-      name: "Modals",
-      count: "5 components",
-      tag: "app-ui",
-      preview: <ModalsPreview />,
+      id: "product-cards",
+      name: "Product Cards",
+      count: 3,
+      tag: {
+         label: "E-commerce",
+         bg: "rgba(234,88,12,0.08)",
+         color: "#ea580c",
+      },
+      bg: "#fff7f0",
+      path: "/components/product-cards",
+      preview: <ProductCardsPreview />,
+      live: true,
+   },
+
+   // ── Upcoming items ─────────────────────────────────────
+   {
+      id: "product-grid",
+      name: "Product Grids",
+      count: null,
+      tag: {
+         label: "E-commerce",
+         bg: "rgba(234,88,12,0.08)",
+         color: "#ea580c",
+      },
+      bg: "#fff7ed",
+      path: null,
+      preview: (
+         <ComingSoonPreview
+            icon="fa-grid-2"
+            iconBg="rgba(234,88,12,0.1)"
+            iconColor="#ea580c"
+            label="Product Grids"
+         />
+      ),
+      live: false,
    },
    {
-      id: 4,
-      name: "Forms",
-      count: "4 components",
-      tag: "app-ui",
-      preview: <FormsPreview />,
+      id: "announcement-bars",
+      name: "Announcement Bars",
+      count: null,
+      tag: { label: "Marketing", bg: "rgba(22,163,74,0.08)", color: "#16a34a" },
+      bg: "#f0fdf4",
+      path: null,
+      preview: (
+         <ComingSoonPreview
+            icon="fa-bullhorn"
+            iconBg="rgba(22,163,74,0.1)"
+            iconColor="#16a34a"
+            label="Announcement Bars"
+         />
+      ),
+      live: false,
    },
    {
-      id: 5,
-      name: "Heros",
-      count: "11 components",
-      tag: "marketing",
-      preview: <HerosPreview />,
+      id: "footers",
+      name: "Footers",
+      count: null,
+      tag: {
+         label: "Navigation",
+         bg: "rgba(37,99,235,0.08)",
+         color: "#2563eb",
+      },
+      bg: "#f0f4ff",
+      path: null,
+      preview: (
+         <ComingSoonPreview
+            icon="fa-table-columns"
+            iconBg="rgba(37,99,235,0.1)"
+            iconColor="#2563eb"
+            label="Footers"
+         />
+      ),
+      live: false,
    },
    {
-      id: 6,
-      name: "Portfolio",
-      count: "5 components",
-      tag: "marketing",
-      preview: <PortfolioPreview />,
+      id: "collection-banners",
+      name: "Collection Banners",
+      count: null,
+      tag: {
+         label: "Marketing",
+         bg: "rgba(124,58,237,0.08)",
+         color: "#7c3aed",
+      },
+      bg: "#f5f0ff",
+      path: null,
+      preview: (
+         <ComingSoonPreview
+            icon="fa-images"
+            iconBg="rgba(124,58,237,0.1)"
+            iconColor="#7c3aed"
+            label="Collection Banners"
+         />
+      ),
+      live: false,
    },
    {
-      id: 7,
-      name: "Dropdowns",
-      count: "6 components",
-      tag: "app-ui",
-      preview: <DropdownsPreview />,
+      id: "testimonials",
+      name: "Testimonials",
+      count: null,
+      tag: { label: "Trust", bg: "rgba(234,179,8,0.1)", color: "#ca8a04" },
+      bg: "#fefce8",
+      path: null,
+      preview: (
+         <ComingSoonPreview
+            icon="fa-star"
+            iconBg="rgba(234,179,8,0.1)"
+            iconColor="#ca8a04"
+            label="Testimonials"
+         />
+      ),
+      live: false,
    },
    {
-      id: 8,
-      name: "Buttons",
-      count: "10 components",
-      tag: "app-ui",
-      preview: <ButtonsPreview />,
+      id: "cart-drawers",
+      name: "Cart Drawers",
+      count: null,
+      tag: {
+         label: "E-commerce",
+         bg: "rgba(234,88,12,0.08)",
+         color: "#ea580c",
+      },
+      bg: "#fff7f0",
+      path: null,
+      preview: (
+         <ComingSoonPreview
+            icon="fa-cart-shopping"
+            iconBg="rgba(234,88,12,0.1)"
+            iconColor="#ea580c"
+            label="Cart Drawers"
+         />
+      ),
+      live: false,
    },
 ];
 
@@ -699,6 +802,9 @@ const componentsData = [
 
 const ComponentsShowcase = () => {
    const cardRefs = useRef([]);
+   const navigate = useNavigate();
+
+   // ── Intersection observer for staggered entrance ───────
 
    useEffect(() => {
       const observer = new IntersectionObserver(
@@ -710,7 +816,7 @@ const ComponentsShowcase = () => {
                }
             });
          },
-         { threshold: 0.1 },
+         { threshold: 0.08 },
       );
 
       cardRefs.current.forEach((card) => {
@@ -720,46 +826,104 @@ const ComponentsShowcase = () => {
       return () => observer.disconnect();
    }, []);
 
+   const handleCardClick = (item) => {
+      if (item.live && item.path) navigate(item.path);
+   };
+
+   // ── Stats from live registry ───────────────────────────
+
+   const categories = getAllCategories();
+   const totalVariants = categories.reduce(
+      (acc, cat) => acc + cat.variants.length,
+      0,
+   );
+
    return (
       <Section>
          <Container>
-            {/* Header */}
+            {/* ── Header ── */}
             <SectionHeader>
-               <SectionTitle>Tailwind CSS Components</SectionTitle>
+               <SectionEyebrow>
+                  <i className="fa-solid fa-puzzle-piece"></i>
+                  Component Library
+               </SectionEyebrow>
+               <SectionTitle>
+                  Every Section Your Shopify
+                  <br />
+                  Store Will Ever Need
+               </SectionTitle>
                <SectionSubtitle>
-                  Alert, Heroes, features, sign up forms, CTA, and everything
-                  you need to build your websites fast with RTL Languages
-                  Support.
+                  {totalVariants} production-ready sections across{" "}
+                  {categories.length} categories — copy, paste, and go live in
+                  minutes. More sections shipping every week.
                </SectionSubtitle>
             </SectionHeader>
 
-            {/* Grid */}
+            {/* ── Grid ── */}
             <Grid>
-               {componentsData.map((item, index) => (
+               {SHOWCASE.map((item, index) => (
                   <Card
                      key={item.id}
-                     $delay={index * 0.07}
+                     $delay={(index * 0.06).toFixed(2)}
                      ref={(el) => (cardRefs.current[index] = el)}
+                     onClick={() => handleCardClick(item)}
+                     style={{ cursor: item.live ? "pointer" : "default" }}
+                     role={item.live ? "button" : "article"}
+                     tabIndex={item.live ? 0 : undefined}
+                     onKeyDown={(e) => {
+                        if (item.live && e.key === "Enter")
+                           handleCardClick(item);
+                     }}
+                     aria-label={
+                        item.live
+                           ? `View ${item.name} components`
+                           : `${item.name} — coming soon`
+                     }
                   >
-                     <CardPreview>{item.preview}</CardPreview>
-                     <CardContent>
+                     {/* Preview area */}
+                     <CardPreview $bg={item.bg}>
+                        <PreviewInner className="card-preview-inner">
+                           {item.preview}
+                        </PreviewInner>
+                     </CardPreview>
+
+                     {/* Footer row */}
+                     <CardFooter>
                         <CardInfo>
-                           <h3>{item.name}</h3>
-                           <span>{item.count}</span>
+                           <CardName>{item.name}</CardName>
+                           <CardMeta>
+                              {item.live
+                                 ? `${item.count} variant${item.count === 1 ? "" : "s"}`
+                                 : "Coming soon"}
+                           </CardMeta>
                         </CardInfo>
-                        <Tag $variant={item.tag}>
-                           {item.tag === "app-ui"
-                              ? "Application UI"
-                              : "Marketing"}
-                        </Tag>
-                     </CardContent>
+
+                        <CardTag $bg={item.tag.bg} $color={item.tag.color}>
+                           {item.tag.label}
+                        </CardTag>
+
+                        {item.live && (
+                           <CardArrow aria-hidden>
+                              <i className="fa-solid fa-arrow-right"></i>
+                           </CardArrow>
+                        )}
+                     </CardFooter>
                   </Card>
                ))}
             </Grid>
 
-            {/* Footer Button */}
+            {/* ── Footer CTA ── */}
             <FooterAction>
-               <BtnPrimary>Show All Components</BtnPrimary>
+               <BtnBrowse onClick={() => navigate("/components")}>
+                  Browse All Components
+                  <i className="fa-solid fa-arrow-right"></i>
+               </BtnBrowse>
+               <FooterHelp>
+                  Want a specific section?{" "}
+                  <span onClick={() => navigate("/docs")}>
+                     Request it here →
+                  </span>
+               </FooterHelp>
             </FooterAction>
          </Container>
       </Section>

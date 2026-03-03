@@ -1,228 +1,396 @@
 import { useState, useRef, useEffect } from "react";
-import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
+import styled, { keyframes } from "styled-components";
 
-// ── Styled Components ──────────────────────────────────────────
+// ── Animations ─────────────────────────────────────────────────
+
+const checkPop = keyframes`
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+`;
+
+// ── Root ───────────────────────────────────────────────────────
 
 const StyledFooter = styled.footer`
-   background-color: var(--color-bg-white);
+   background: #ffffff;
+   border-top: 1px solid var(--color-border);
    padding: 4rem 0 2rem;
 `;
 
 const Container = styled.div`
-   max-width: 1200px;
+   max-width: var(--container-max-width);
    margin: 0 auto;
-   padding: var(--container-padding);
+   padding: 0 var(--container-padding-x, 1.5rem);
 `;
 
-// ── Footer Grid ────────────────────────────────────────────────
+// ── Top grid ───────────────────────────────────────────────────
 
 const FooterGrid = styled.div`
    display: grid;
-   grid-template-columns: 1.5fr 1fr 1fr 1fr;
-   gap: 2rem;
-   margin-bottom: 4rem;
+   grid-template-columns: 1.6fr 1fr 1fr 1fr;
+   gap: 2.5rem;
+   margin-bottom: 3.5rem;
 
    @media (max-width: 1024px) {
       grid-template-columns: 1fr 1fr;
-      gap: 3rem;
+      gap: 2.5rem 3rem;
    }
 
    @media (max-width: 640px) {
       grid-template-columns: 1fr;
       gap: 2rem;
-      text-align: center;
    }
 `;
 
-// ── Newsletter Column ──────────────────────────────────────────
+// ── Brand column ───────────────────────────────────────────────
 
-const NewsletterCol = styled.div`
-   padding-right: 2rem;
+const BrandCol = styled.div`
+   display: flex;
+   flex-direction: column;
+   gap: 1rem;
+   padding-right: 1.5rem;
 
    @media (max-width: 1024px) {
       grid-column: span 2;
       padding-right: 0;
-      text-align: center;
+      max-width: 460px;
    }
 
    @media (max-width: 640px) {
       grid-column: span 1;
+      max-width: 100%;
    }
 `;
 
-const NewsletterTitle = styled.h2`
-   font-size: 1.25rem;
+const BrandLogo = styled.button`
+   display: inline-flex;
+   align-items: center;
+   gap: 0;
+   font-size: 1.1rem;
+   font-weight: 800;
+   letter-spacing: -0.035em;
+   font-family: var(--inter-font);
+   background: none;
+   border: none;
+   cursor: pointer;
+   padding: 0;
+   width: fit-content;
+   transition: opacity 0.15s ease;
+
+   &:hover {
+      opacity: 0.75;
+   }
+`;
+
+const LogoShopify = styled.span`
+   color: var(--color-text-main);
+`;
+
+const LogoBazzar = styled.span`
+   color: var(--color-primary-blue);
+`;
+
+const BrandDesc = styled.p`
+   font-size: 0.82rem;
+   color: var(--color-text-secondary);
+   line-height: 1.7;
+   font-family: var(--inter-font);
+   max-width: 320px;
+`;
+
+// Social icons
+const SocialRow = styled.div`
+   display: flex;
+   gap: 0.5rem;
+   margin-top: 0.25rem;
+`;
+
+const SocialBtn = styled.a`
+   width: 32px;
+   height: 32px;
+   border-radius: 8px;
+   border: 1px solid var(--color-border);
+   background: transparent;
+   color: var(--color-text-secondary);
+   font-size: 0.78rem;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   cursor: pointer;
+   transition:
+      background 0.14s ease,
+      border-color 0.14s ease,
+      color 0.14s ease;
+   text-decoration: none;
+
+   &:hover {
+      background: var(--color-bg-light);
+      border-color: var(--color-border-hover);
+      color: var(--color-text-main);
+   }
+`;
+
+// ── Newsletter ─────────────────────────────────────────────────
+
+const NewsletterWrap = styled.div`
+   margin-top: 0.5rem;
+   display: flex;
+   flex-direction: column;
+   gap: 0.6rem;
+`;
+
+const NewsletterLabel = styled.label`
+   font-size: 0.72rem;
    font-weight: 700;
    color: var(--color-text-main);
-   margin-bottom: 1.5rem;
+   text-transform: uppercase;
+   letter-spacing: 0.07em;
    font-family: var(--inter-font);
 `;
 
 const NewsletterForm = styled.form`
    display: flex;
-   gap: 0.75rem;
-   max-width: 400px;
+   gap: 0.5rem;
+   max-width: 360px;
 
-   @media (max-width: 1024px) {
-      margin: 0 auto;
-   }
-
-   @media (max-width: 640px) {
+   @media (max-width: 480px) {
       flex-direction: column;
-      width: 100%;
+      max-width: 100%;
    }
 `;
 
 const NewsletterInput = styled.input`
    flex: 1;
-   padding: 0.75rem 1rem;
+   min-width: 0;
+   padding: 0.6rem 0.9rem;
    border: 1px solid var(--color-border);
-   border-radius: var(--radius-sm);
-   font-size: 0.95rem;
+   border-radius: 8px;
+   font-size: 0.82rem;
    color: var(--color-text-main);
    font-family: var(--inter-font);
+   background: var(--color-bg-light, #f9fafb);
    outline: none;
-   transition: var(--transition-fast);
-   background-color: var(--color-bg-white);
+   transition:
+      border-color 0.14s ease,
+      box-shadow 0.14s ease;
 
    &::placeholder {
-      color: var(--color-text-light);
+      color: var(--color-text-secondary);
    }
 
    &:focus {
-      border-color: var(--color-primary-purple);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      border-color: var(--color-primary-blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      background: #ffffff;
    }
 `;
 
 const BtnSubscribe = styled.button`
-   background-color: ${({ $subscribed }) =>
-      $subscribed ? "var(--color-success)" : "var(--color-btn-slate)"};
-   color: var(--color-text-white);
+   display: inline-flex;
+   align-items: center;
+   gap: 0.4rem;
+   padding: 0.6rem 1.1rem;
+   border-radius: 8px;
    border: none;
-   padding: 0.75rem 1.5rem;
-   border-radius: var(--radius-sm);
    font-weight: 600;
-   font-size: 0.95rem;
+   font-size: 0.8rem;
    font-family: var(--inter-font);
    cursor: pointer;
-   transition: background-color 0.3s ease;
    white-space: nowrap;
+   transition:
+      background 0.2s ease,
+      transform 0.12s ease;
+   background: ${({ $subscribed }) =>
+      $subscribed ? "#16a34a" : "var(--color-primary-dark)"};
+   color: #ffffff;
 
-   &:hover {
-      background-color: ${({ $subscribed }) =>
-         $subscribed ? "var(--color-success)" : "var(--color-btn-slate-hover)"};
+   i {
+      font-size: 0.7rem;
+      animation: ${({ $subscribed }) => ($subscribed ? checkPop : "none")} 0.3s
+         ease both;
    }
 
-   @media (max-width: 640px) {
+   &:hover {
+      background: ${({ $subscribed }) => ($subscribed ? "#15803d" : "#1e293b")};
+      transform: translateY(-1px);
+   }
+   &:active {
+      transform: translateY(0);
+   }
+
+   @media (max-width: 480px) {
       width: 100%;
+      justify-content: center;
    }
 `;
 
-// ── Link Columns ───────────────────────────────────────────────
+const SubscribeNote = styled.p`
+   font-size: 0.68rem;
+   color: var(--color-text-secondary);
+   font-family: var(--inter-font);
+   line-height: 1.5;
+`;
+
+// ── Link columns ───────────────────────────────────────────────
 
 const FooterCol = styled.div``;
 
 const ColTitle = styled.h3`
-   font-size: 0.95rem;
-   font-weight: 600;
+   font-size: 0.78rem;
+   font-weight: 700;
    color: var(--color-text-main);
-   margin-bottom: 1.25rem;
-   text-transform: capitalize;
+   margin-bottom: 1.1rem;
+   text-transform: uppercase;
+   letter-spacing: 0.07em;
    font-family: var(--inter-font);
 `;
 
-const ColList = styled.ul``;
-
-const ColItem = styled.li`
-   margin-bottom: 0.75rem;
+const ColList = styled.ul`
+   display: flex;
+   flex-direction: column;
+   gap: 0.65rem;
+   list-style: none;
+   padding: 0;
+   margin: 0;
 `;
 
-const ColLink = styled.a`
+const ColLink = styled.button`
+   background: none;
+   border: none;
+   padding: 0;
    color: var(--color-text-secondary);
-   font-size: 0.95rem;
+   font-size: 0.82rem;
    font-family: var(--inter-font);
-   transition: var(--transition-fast);
+   cursor: pointer;
+   text-align: left;
+   transition: color 0.14s ease;
+   display: inline-flex;
+   align-items: center;
+   gap: 0.35rem;
+
+   i {
+      font-size: 0.65rem;
+      opacity: 0;
+      transition:
+         opacity 0.14s ease,
+         transform 0.14s ease;
+   }
 
    &:hover {
       color: var(--color-text-main);
-      text-decoration: underline;
+
+      i {
+         opacity: 1;
+         transform: translateX(2px);
+      }
    }
 `;
 
-// ── Footer Bottom ──────────────────────────────────────────────
+// ── Divider ────────────────────────────────────────────────────
+
+const Divider = styled.div`
+   width: 100%;
+   height: 1px;
+   background: var(--color-border);
+   margin-bottom: 1.75rem;
+`;
+
+// ── Footer bottom ──────────────────────────────────────────────
 
 const FooterBottom = styled.div`
    display: flex;
-   justify-content: space-between;
    align-items: center;
-   padding-top: 2rem;
-   margin-top: 2rem;
-   border-top: 1px solid var(--color-border);
+   justify-content: space-between;
+   gap: 1rem;
+   flex-wrap: wrap;
 
    @media (max-width: 640px) {
       flex-direction: column;
-      gap: 1.5rem;
+      align-items: center;
       text-align: center;
+      gap: 0.75rem;
    }
-`;
-
-const LogoLink = styled.a`
-   display: flex;
-   align-items: center;
-   gap: 0.5rem;
-   font-family: var(--roboto-mono-font);
-   font-weight: 500;
-   font-size: 1.5rem;
-   color: var(--color-primary-dark);
-   letter-spacing: -0.5px;
-`;
-
-const LogoIcon = styled.svg`
-   width: 32px;
-   height: 32px;
-   flex-shrink: 0;
 `;
 
 const Copyright = styled.p`
-   color: var(--color-text-light);
-   font-size: 0.9rem;
+   font-size: 0.75rem;
+   color: var(--color-text-secondary);
    font-family: var(--inter-font);
+   line-height: 1.5;
 
    span {
-      color: var(--color-error);
+      color: #ef4444;
    }
 `;
 
-// ── Footer Link Data ───────────────────────────────────────────
+const BottomLinks = styled.div`
+   display: flex;
+   align-items: center;
+   gap: 1.25rem;
+`;
 
-const footerColumns = [
+const BottomLink = styled.button`
+   background: none;
+   border: none;
+   padding: 0;
+   font-size: 0.72rem;
+   color: var(--color-text-secondary);
+   font-family: var(--inter-font);
+   cursor: pointer;
+   transition: color 0.14s ease;
+
+   &:hover {
+      color: var(--color-text-main);
+   }
+`;
+
+const BottomDot = styled.span`
+   width: 3px;
+   height: 3px;
+   border-radius: 50%;
+   background: var(--color-border-hover);
+   flex-shrink: 0;
+`;
+
+// ── Footer Data ────────────────────────────────────────────────
+
+const FOOTER_COLS = [
    {
       id: 1,
-      title: "Resources",
+      title: "Library",
       links: [
-         { label: "Components", href: "#" },
-         { label: "Templates", href: "#" },
-         { label: "Tutorial", href: "#" },
+         { label: "Components", path: "/components" },
+         { label: "Headers", path: "/components/headers" },
+         { label: "Hero Sections", path: "/components/hero" },
+         { label: "Product Cards", path: "/components/product-cards" },
       ],
    },
    {
       id: 2,
-      title: "Community",
+      title: "Templates",
       links: [
-         { label: "GitHub", href: "#" },
-         { label: "Twitter", href: "#" },
+         { label: "All Templates", path: "/templates" },
+         { label: "Starter Store", path: "/templates/starter-store" },
+         { label: "Fashion Store", path: "/templates/fashion-store" },
+         { label: "Coming Soon", path: "/templates" },
       ],
    },
    {
       id: 3,
-      title: "Sponsor Us",
+      title: "Resources",
       links: [
-         { label: "PayPal", href: "#" },
-         { label: "Patreon", href: "#" },
-         { label: "Buy me a Coffee", href: "#" },
+         { label: "Documentation", path: "/docs" },
+         { label: "Changelog", path: "/docs/changelog" },
+         { label: "GitHub", path: null, href: "https://github.com" },
+         { label: "Request Section", path: "/docs" },
       ],
    },
+];
+
+const SOCIAL = [
+   { icon: "fa-github", label: "GitHub", href: "https://github.com" },
+   { icon: "fa-twitter", label: "Twitter", href: "https://twitter.com" },
+   { icon: "fa-linkedin", label: "LinkedIn", href: "https://linkedin.com" },
 ];
 
 // ── Component ─────────────────────────────────────────────────
@@ -231,89 +399,136 @@ const Footer = () => {
    const [subscribed, setSubscribed] = useState(false);
    const [email, setEmail] = useState("");
    const timerRef = useRef(null);
+   const navigate = useNavigate();
 
    const handleSubmit = (e) => {
       e.preventDefault();
       if (!email.trim()) return;
-
       setSubscribed(true);
       setEmail("");
-
-      // Reset after 3 seconds
-      timerRef.current = setTimeout(() => {
-         setSubscribed(false);
-      }, 3000);
+      timerRef.current = setTimeout(() => setSubscribed(false), 3500);
    };
 
-   // Cleanup timer on unmount
    useEffect(() => {
       return () => {
          if (timerRef.current) clearTimeout(timerRef.current);
       };
    }, []);
 
+   const go = (path, href) => {
+      if (href) {
+         window.open(href, "_blank", "noopener noreferrer");
+         return;
+      }
+      if (path) navigate(path);
+   };
+
    return (
       <StyledFooter>
          <Container>
             <FooterGrid>
-               {/* Newsletter */}
-               <NewsletterCol>
-                  <NewsletterTitle>Sign up for our newsletter</NewsletterTitle>
-                  <NewsletterForm onSubmit={handleSubmit}>
-                     <NewsletterInput
-                        type="email"
-                        placeholder="Enter your email"
-                        aria-label="Email address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                     />
-                     <BtnSubscribe type="submit" $subscribed={subscribed}>
-                        {subscribed ? "Subscribed! ✓" : "Subscribe"}
-                     </BtnSubscribe>
-                  </NewsletterForm>
-               </NewsletterCol>
+               {/* ── Brand + Newsletter ── */}
+               <BrandCol>
+                  <BrandLogo onClick={() => navigate("/")}>
+                     <LogoShopify>Shopify</LogoShopify>
+                     <LogoBazzar>Bazzar</LogoBazzar>
+                  </BrandLogo>
 
-               {/* Link Columns */}
-               {footerColumns.map((col) => (
+                  <BrandDesc>
+                     A free, growing library of production-ready Shopify section
+                     components. Copy, paste, and go live in minutes — no Liquid
+                     knowledge required.
+                  </BrandDesc>
+
+                  <SocialRow>
+                     {SOCIAL.map((s) => (
+                        <SocialBtn
+                           key={s.label}
+                           href={s.href}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           aria-label={s.label}
+                        >
+                           <i className={`fa-brands ${s.icon}`}></i>
+                        </SocialBtn>
+                     ))}
+                  </SocialRow>
+
+                  {/* Newsletter */}
+                  <NewsletterWrap>
+                     <NewsletterLabel htmlFor="footer-email">
+                        Stay updated
+                     </NewsletterLabel>
+                     <NewsletterForm onSubmit={handleSubmit}>
+                        <NewsletterInput
+                           id="footer-email"
+                           type="email"
+                           placeholder="your@email.com"
+                           aria-label="Email address"
+                           value={email}
+                           onChange={(e) => setEmail(e.target.value)}
+                           required
+                        />
+                        <BtnSubscribe type="submit" $subscribed={subscribed}>
+                           {subscribed ? (
+                              <>
+                                 <i className="fa-solid fa-check"></i>
+                                 Done!
+                              </>
+                           ) : (
+                              <>
+                                 <i className="fa-solid fa-paper-plane"></i>
+                                 Subscribe
+                              </>
+                           )}
+                        </BtnSubscribe>
+                     </NewsletterForm>
+                     <SubscribeNote>
+                        New sections and templates straight to your inbox. No
+                        spam, unsubscribe any time.
+                     </SubscribeNote>
+                  </NewsletterWrap>
+               </BrandCol>
+
+               {/* ── Link columns ── */}
+               {FOOTER_COLS.map((col) => (
                   <FooterCol key={col.id}>
                      <ColTitle>{col.title}</ColTitle>
                      <ColList>
                         {col.links.map((link) => (
-                           <ColItem key={link.label}>
-                              <ColLink href={link.href}>{link.label}</ColLink>
-                           </ColItem>
+                           <li key={link.label}>
+                              <ColLink onClick={() => go(link.path, link.href)}>
+                                 {link.label}
+                                 <i className="fa-solid fa-arrow-right"></i>
+                              </ColLink>
+                           </li>
                         ))}
                      </ColList>
                   </FooterCol>
                ))}
             </FooterGrid>
 
-            {/* Footer Bottom */}
+            <Divider />
+
+            {/* ── Bottom bar ── */}
             <FooterBottom>
-               <LogoLink href="#">
-                  <LogoIcon
-                     viewBox="0 0 24 24"
-                     fill="none"
-                     xmlns="http://www.w3.org/2000/svg"
-                  >
-                     <path
-                        d="M3 7L12 13L21 7V17H17V11.5L12 15L7 11.5V17H3V7Z"
-                        fill="#2563eb"
-                     />
-                     <path
-                        d="M3 7L12 13L21 7"
-                        stroke="#2563eb"
-                        strokeWidth="2"
-                        strokeLinejoin="round"
-                     />
-                  </LogoIcon>
-                  merakiui
-               </LogoLink>
                <Copyright>
-                  © 2020 - 2026 Meraki UI. Made with <span>❤</span> for
-                  Developers.
+                  © {new Date().getFullYear()} ShopifyBazzar. Made with{" "}
+                  <span>♥</span> for Shopify developers.
                </Copyright>
+               <BottomLinks>
+                  <BottomLink onClick={() => navigate("/docs")}>
+                     Privacy Policy
+                  </BottomLink>
+                  <BottomDot />
+                  <BottomLink onClick={() => navigate("/docs")}>
+                     Terms of Use
+                  </BottomLink>
+                  <BottomDot />
+                  <BottomLink onClick={() => navigate("/docs")}>
+                     Sitemap
+                  </BottomLink>
+               </BottomLinks>
             </FooterBottom>
          </Container>
       </StyledFooter>
