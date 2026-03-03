@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { allSectionsData, VariantsGrid } from "./ComponentsPage";
+import { getCategoryBySlug } from "../registry/componentRegistry";
+import { VariantsGrid } from "./ComponentsPage";
 
 // ── Styled Components ──────────────────────────────────────────
 
@@ -15,10 +16,24 @@ const PageTitle = styled.h1`
    letter-spacing: -0.025em;
    margin-bottom: 12px;
    font-family: var(--inter-font);
+   display: flex;
+   align-items: center;
+   gap: 14px;
 
    @media (max-width: 768px) {
       font-size: 2rem;
    }
+`;
+
+const VariantBadge = styled.span`
+   font-size: 0.8rem;
+   font-weight: 600;
+   background-color: var(--color-badge-gray-bg);
+   color: var(--color-nav-text-secondary);
+   padding: 3px 12px;
+   border-radius: var(--radius-full);
+   font-family: var(--inter-font);
+   vertical-align: middle;
 `;
 
 const PageDescription = styled.p`
@@ -29,23 +44,9 @@ const PageDescription = styled.p`
    font-family: var(--inter-font);
 `;
 
-const VariantCount = styled.span`
-   display: inline-block;
-   font-size: 0.8rem;
-   font-weight: 600;
-   background-color: var(--color-badge-gray-bg);
-   color: var(--color-nav-text-secondary);
-   padding: 2px 12px;
-   border-radius: var(--radius-full);
-   margin-left: 12px;
-   font-family: var(--inter-font);
-   vertical-align: middle;
-`;
-
 const NotFound = styled.div`
    text-align: center;
    padding: 80px 24px;
-   color: var(--color-nav-text-secondary);
    font-family: var(--inter-font);
 
    h2 {
@@ -54,30 +55,27 @@ const NotFound = styled.div`
       color: var(--color-nav-text);
       margin-bottom: 12px;
    }
-
    p {
+      color: var(--color-nav-text-secondary);
       font-size: 1rem;
       margin-bottom: 24px;
    }
 `;
 
 const BackBtn = styled.button`
-   display: inline-flex;
-   align-items: center;
-   gap: 8px;
-   font-size: 0.9rem;
-   font-weight: 600;
-   padding: 10px 20px;
-   border-radius: var(--radius-md);
-   background-color: var(--color-nav-active);
+   padding: 10px 24px;
+   background: var(--color-nav-active);
    color: white;
    border: none;
-   cursor: pointer;
+   border-radius: var(--radius-md);
+   font-size: 0.9rem;
+   font-weight: 600;
    font-family: var(--inter-font);
+   cursor: pointer;
    transition: var(--transition-fast);
 
    &:hover {
-      background-color: #0066cc;
+      background: #0066cc;
    }
 `;
 
@@ -86,22 +84,18 @@ const BackBtn = styled.button`
 const ComponentCategoryPage = () => {
    const { section } = useParams();
    const navigate = useNavigate();
+   const category = getCategoryBySlug(section);
 
-   // Find matching section from shared data
-   const sectionData = allSectionsData.find((s) => s.slug === section);
-
-   // 404 state — section not found
-   if (!sectionData) {
+   if (!category) {
       return (
          <NotFound>
-            <h2>Section not found</h2>
+            <h2>Category not found</h2>
             <p>
-               The component category <strong>"{section}"</strong> does not
-               exist.
+               <strong>"{section}"</strong> does not exist in the component
+               library.
             </p>
             <BackBtn onClick={() => navigate("/components")}>
-               <i className="fa-solid fa-arrow-left"></i>
-               Back to All Components
+               ← Back to All Components
             </BackBtn>
          </NotFound>
       );
@@ -109,19 +103,14 @@ const ComponentCategoryPage = () => {
 
    return (
       <>
-         {/* Page Header */}
          <PageHeader>
             <PageTitle>
-               {sectionData.title}
-               <VariantCount>
-                  {sectionData.variants.length} variants
-               </VariantCount>
+               {category.title}
+               <VariantBadge>{category.variants.length} variants</VariantBadge>
             </PageTitle>
-            <PageDescription>{sectionData.description}</PageDescription>
+            <PageDescription>{category.description}</PageDescription>
          </PageHeader>
-
-         {/* Variants Grid */}
-         <VariantsGrid section={sectionData} />
+         <VariantsGrid category={category} />
       </>
    );
 };

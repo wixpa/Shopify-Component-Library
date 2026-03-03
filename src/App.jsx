@@ -3,32 +3,25 @@ import HomePage from "./pages/HomePage";
 import ComponentsLayout from "./components/ComponentsLayout/ComponentsLayout";
 import ComponentsPage from "./pages/ComponentsPage";
 import ComponentCategoryPage from "./pages/ComponentCategoryPage";
+import VariantEditorPage from "./pages/VariantEditorPage";
 
-const App = () => {
-   return (
-      <BrowserRouter>
-         <Routes>
-            {/* Home */}
-            <Route path="/" element={<HomePage />} />
+const App = () => (
+   <BrowserRouter>
+      <Routes>
+         <Route path="/" element={<HomePage />} />
 
-            {/* Components — shared sidebar layout */}
-            <Route path="/components" element={<ComponentsLayout />}>
-               {/* /components → All Components */}
-               <Route index element={<ComponentsPage />} />
+         <Route path="/components" element={<ComponentsLayout />}>
+            <Route index element={<ComponentsPage />} />
+            <Route path=":section" element={<ComponentCategoryPage />} />
+         </Route>
 
-               {/* /components/headers → Headers category */}
-               {/* /components/hero   → Hero category     */}
-               <Route path=":section" element={<ComponentCategoryPage />} />
-
-               {/* /components/headers/header-v2 → Individual variant */}
-               {/* <Route
-                        path=":section/:variantId"
-                        element={<VariantPage />}
-                    /> */}
-            </Route>
-         </Routes>
-      </BrowserRouter>
-   );
-};
+         {/* Editor — full screen, no sidebar */}
+         <Route
+            path="/components/:section/:variantId"
+            element={<VariantEditorPage />}
+         />
+      </Routes>
+   </BrowserRouter>
+);
 
 export default App;
