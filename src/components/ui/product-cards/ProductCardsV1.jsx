@@ -253,3 +253,151 @@ const ProductCardsV1 = ({ config = {} }) => {
 };
 
 export default ProductCardsV1;
+
+// ── Code Generator ────────────────────────────────────────────────────────────
+export const getProductCardsV1Code = (c = {}) => {
+   const bgColor = c.bgColor || "#ffffff";
+   const cardBg = c.cardBg || "#ffffff";
+   const titleColor = c.titleColor || "#111827";
+   const priceColor = c.priceColor || "#111827";
+   const oldPriceColor = c.oldPriceColor || "#9ca3af";
+   const btnBg = c.btnBg || "#111827";
+   const btnColor = c.btnColor || "#ffffff";
+   const btnText = c.btnText || "Add to Cart";
+   const sectionTitle = c.sectionTitle || "Featured Products";
+   const titleTextColor = c.titleTextColor || "#0f172a";
+
+   return `<!-- Product Cards V1 — Classic | Shopify Bazzar -->
+<style>
+  .pc1-section {
+    background: ${bgColor};
+    padding: 4rem 2rem;
+    font-family: sans-serif;
+    box-sizing: border-box;
+  }
+  .pc1-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+  .pc1-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: ${titleTextColor};
+    margin: 0;
+  }
+  .pc1-view-all {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+  }
+  .pc1-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+  .pc1-card {
+    background: ${cardBg};
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .pc1-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+  }
+  .pc1-img-wrap { position: relative; aspect-ratio: 1; overflow: hidden; }
+  .pc1-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .pc1-card:hover .pc1-img { transform: scale(1.04); }
+  .pc1-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .pc1-body { padding: 1rem; }
+  .pc1-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 0.4rem;
+    font-size: 0.75rem;
+    color: #f59e0b;
+  }
+  .pc1-rating-count { color: #9ca3af; }
+  .pc1-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: ${titleColor};
+    margin: 0 0 0.5rem;
+  }
+  .pc1-prices {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .pc1-price { font-size: 1rem; font-weight: 700; color: ${priceColor}; }
+  .pc1-old-price {
+    font-size: 0.85rem;
+    color: ${oldPriceColor};
+    text-decoration: line-through;
+  }
+  .pc1-btn {
+    width: 100%;
+    background: ${btnBg};
+    color: ${btnColor};
+    border: none;
+    padding: 0.6rem;
+    border-radius: 7px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .pc1-btn:hover { opacity: 0.85; }
+</style>
+
+<section class="pc1-section">
+  <div class="pc1-header">
+    <h2 class="pc1-title">${sectionTitle}</h2>
+    <a href="{{ routes.collections_url }}" class="pc1-view-all">View all →</a>
+  </div>
+  <div class="pc1-grid">
+    {%- for product in collections.frontpage.products limit: 5 -%}
+    <div class="pc1-card">
+      <div class="pc1-img-wrap">
+        <img class="pc1-img" src="{{ product.featured_image | img_url: '400x400' }}" alt="{{ product.title }}">
+        {%- if product.compare_at_price > product.price -%}
+        <span class="pc1-badge">Sale</span>
+        {%- endif -%}
+      </div>
+      <div class="pc1-body">
+        <div class="pc1-rating">★★★★★ <span class="pc1-rating-count">({{ product.metafields.reviews.rating_count | default: 0 }})</span></div>
+        <p class="pc1-name">{{ product.title }}</p>
+        <div class="pc1-prices">
+          <span class="pc1-price">{{ product.price | money }}</span>
+          {%- if product.compare_at_price > product.price -%}
+          <span class="pc1-old-price">{{ product.compare_at_price | money }}</span>
+          {%- endif -%}
+        </div>
+        <button class="pc1-btn" onclick="window.location='{{ product.url }}'">${btnText}</button>
+      </div>
+    </div>
+    {%- endfor -%}
+  </div>
+</section>`;
+};
