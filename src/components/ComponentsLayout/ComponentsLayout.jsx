@@ -1,133 +1,73 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import styled from "styled-components";
+import { Menu } from "lucide-react";
 import Sidebar from "../Sidebar/Sidebar";
 import Header from "../Header/Header";
 import Footer from "../Footer/Footer";
 
-// ── Shell ──────────────────────────────────────────────────────
+// ── Tailwind Classes ───────────────────────────────────────────
 
-const Shell = styled.div`
-   display: flex;
-   flex-direction: column;
-   min-height: 100vh;
-   background: var(--color-bg-white);
-`;
+const shell = "flex flex-col min-h-screen bg-[var(--color-bg-white)]";
+const middleRow = "flex flex-1";
 
-// ── Middle row ─────────────────────────────────────────────────
+// Sticky sidebar — hidden on mobile (≤900px)
+const sidebarWrap =
+   "hidden max-[900px]:hidden lg:block w-[var(--sidebar-width,260px)] flex-shrink-0 sticky top-[66px] h-[calc(100vh-64px)] self-start border-r border-[var(--color-sidebar-border)] bg-[var(--color-sidebar-bg)] z-40 overflow-hidden [display:block] max-[900px]:[display:none]";
 
-const MiddleRow = styled.div`
-   display: flex;
-   flex: 1;
-`;
+// Main content area
+const mainContent =
+   "flex-1 min-w-0 px-12 py-10 bg-[var(--color-bg-white)] max-[1024px]:px-8 max-[1024px]:py-8 max-[900px]:px-6 max-[900px]:pt-20 max-[900px]:pb-8 max-[640px]:px-5 max-[640px]:pt-[4.5rem] max-[640px]:pb-8";
 
-// ── Sidebar wrap — sticky ──────────────────────────────────────
-// top: 64px           → sticks just below the header (not behind it)
-// height: calc(100vh - 64px) → fills exactly the remaining viewport
-// align-self: flex-start     → REQUIRED for sticky to trigger
+// Mobile hamburger — fixed, only visible ≤900px
+const menuBtn =
+   "hidden fixed top-[14px] left-[14px] z-[200] bg-white border border-[var(--color-sidebar-border)] p-[7px_10px] rounded-[6px] cursor-pointer shadow-[var(--shadow-sm)] text-[var(--color-nav-text)] transition-colors duration-150 hover:bg-[var(--color-bg-light)] max-[900px]:block";
 
-const SidebarWrap = styled.aside`
-   width: var(--sidebar-width, 260px);
-   flex-shrink: 0;
-   position: sticky;
-   top: 66px;
-   height: calc(100vh - 64px);
-   align-self: flex-start;
-   border-right: 1px solid var(--color-sidebar-border);
-   background: var(--color-sidebar-bg);
-   z-index: 40;
-   overflow: hidden;
-
-   @media (max-width: 900px) {
-      display: none;
-   }
-`;
-
-// ── Main content ───────────────────────────────────────────────
-
-const MainContent = styled.main`
-   flex: 1;
-   min-width: 0;
-   padding: 2.5rem 3rem;
-   background: var(--color-bg-white);
-
-   @media (max-width: 1024px) {
-      padding: 2rem 2rem;
-   }
-
-   @media (max-width: 900px) {
-      padding: 5rem 1.5rem 2rem;
-   }
-
-   @media (max-width: 640px) {
-      padding: 4.5rem 1.25rem 2rem;
-   }
-`;
-
-// ── Mobile menu button ─────────────────────────────────────────
-
-const MenuBtn = styled.button`
-   display: none;
-   position: fixed;
-   top: 14px;
-   left: 14px;
-   z-index: 200;
-   background: white;
-   border: 1px solid var(--color-sidebar-border);
-   padding: 7px 10px;
-   border-radius: 6px;
-   cursor: pointer;
-   box-shadow: var(--shadow-sm);
-   font-size: 0.9rem;
-   color: var(--color-nav-text);
-   transition: background 0.14s ease;
-
-   &:hover {
-      background: var(--color-bg-light);
-   }
-
-   @media (max-width: 900px) {
-      display: block;
-   }
-`;
-
-// ── Component ─────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────
 
 const ComponentsLayout = () => {
    const [sidebarOpen, setSidebarOpen] = useState(false);
 
    return (
-      <Shell>
+      <div className={shell}>
          {/* ── Row 1: Full-width Header ── */}
          <Header />
 
          {/* ── Row 2: Sticky sidebar + page content ── */}
-         <MiddleRow>
-            {/* Sticky sidebar */}
-            <SidebarWrap>
+         <div className={middleRow}>
+            {/* Sticky sidebar — desktop only */}
+            <aside
+               className={[
+                  "w-[var(--sidebar-width,260px)] flex-shrink-0 sticky top-[66px]",
+                  "h-[calc(100vh-64px)] self-start border-r border-[var(--color-sidebar-border)]",
+                  "bg-[var(--color-sidebar-bg)] z-40 overflow-hidden",
+                  "hidden [&]:block max-[900px]:![display:none]",
+               ].join(" ")}
+               style={{ display: "block" }}
+            >
                <Sidebar
                   isOpen={sidebarOpen}
                   onClose={() => setSidebarOpen(false)}
                />
-            </SidebarWrap>
+            </aside>
 
             {/* Mobile hamburger */}
-            <MenuBtn
+            <button
+               className={menuBtn}
                aria-label="Toggle Navigation"
                onClick={() => setSidebarOpen(true)}
             >
-               <i className="fa-solid fa-bars"></i>
-            </MenuBtn>
+               <Menu size={16} />
+            </button>
 
-            {/* Page content — grows naturally */}
-            <MainContent>
+            {/* Page content */}
+            <main className={mainContent}>
                <Outlet />
-            </MainContent>
-         </MiddleRow>
+            </main>
+         </div>
 
          {/* ── Row 3: Full-width Footer ── */}
          <Footer />
-      </Shell>
+      </div>
    );
 };
 

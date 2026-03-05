@@ -1,5 +1,4 @@
 import { useEffect, useCallback, memo } from "react";
-import styled from "styled-components";
 import {
    ReactFlow,
    Background,
@@ -11,148 +10,55 @@ import {
    BackgroundVariant,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { GripHorizontal, Hand } from "lucide-react";
 
-// ── Styled ─────────────────────────────────────────────────────
+// ── Tailwind Classes ───────────────────────────────────────────
 
-const Wrapper = styled.div`
-   flex: 1;
-   position: relative;
-   overflow: hidden;
+const wrapper = [
+   "flex-1 relative overflow-hidden",
+   // React Flow scoped overrides via global style tag below
+].join(" ");
 
-   /* Scoped React Flow overrides */
-   .react-flow__attribution {
-      display: none;
-   }
-   .react-flow__controls {
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-      border-radius: 10px;
-      border: 1px solid #e5e7eb;
-      overflow: hidden;
-   }
-   .react-flow__controls-button {
-      background: #fff;
-      border-bottom: 1px solid #f3f4f6;
-      color: #374151;
-      width: 28px;
-      height: 28px;
+const canvasHint = [
+   "bg-white/90 backdrop-blur-[8px]",
+   "border border-[#e5e7eb] rounded-lg",
+   "px-3 py-[5px]",
+   "text-[0.72rem] text-[#6b7280] font-medium font-[var(--inter-font)]",
+   "flex items-center gap-[6px]",
+   "shadow-[0_1px_4px_rgba(0,0,0,0.06)]",
+   "whitespace-nowrap",
+].join(" ");
 
-      &:hover {
-         background: #f9fafb;
-      }
-      svg {
-         width: 12px;
-         height: 12px;
-      }
-   }
-   .react-flow__minimap {
-      border-radius: 10px;
-      border: 1px solid #e5e7eb;
-      overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-   }
-   .react-flow__node {
-      cursor: grab;
-   }
-   .react-flow__node:active {
-      cursor: grabbing;
-   }
-   .react-flow__handle {
-      opacity: 0;
-      pointer-events: none;
-   }
-`;
+// NodeFrame width is dynamic — handled via inline style
+const nodeFrameBase = [
+   "bg-white rounded-[10px] border border-[#e2e8f0] overflow-hidden",
+   "shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_10px_28px_-5px_rgba(0,0,0,0.1)]",
+   "transition-[box-shadow,border-color] duration-200",
+   "hover:border-[#cbd5e1]",
+   "hover:shadow-[0_8px_14px_-2px_rgba(0,0,0,0.07),0_20px_38px_-8px_rgba(0,0,0,0.12)]",
+].join(" ");
 
-const CanvasHint = styled.div`
-   background: rgba(255, 255, 255, 0.92);
-   backdrop-filter: blur(8px);
-   -webkit-backdrop-filter: blur(8px);
-   border: 1px solid #e5e7eb;
-   border-radius: 8px;
-   padding: 5px 12px;
-   font-size: 0.72rem;
-   color: #6b7280;
-   font-family: var(--inter-font);
-   font-weight: 500;
-   display: flex;
-   align-items: center;
-   gap: 6px;
-   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-`;
+const nodeBar = [
+   "flex items-center justify-between px-3 py-[6px]",
+   "bg-[#f8fafc] border-b border-[#e2e8f0]",
+   "cursor-grab active:cursor-grabbing select-none",
+].join(" ");
 
-// ── Node Frame ─────────────────────────────────────────────────
+const nodeBarLeft = [
+   "flex items-center gap-2",
+   "text-[0.71rem] font-semibold text-[#64748b] font-[var(--inter-font)]",
+].join(" ");
 
-const NodeFrame = styled.div`
-   background: #ffffff;
-   border-radius: 10px;
-   border: 1px solid #e2e8f0;
-   overflow: hidden;
-   box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.05),
-      0 10px 28px -5px rgba(0, 0, 0, 0.1);
-   transition:
-      box-shadow 0.2s ease,
-      border-color 0.2s ease;
+const trafficLights = "flex gap-[5px]";
 
-   &:hover {
-      border-color: #cbd5e1;
-      box-shadow:
-         0 8px 14px -2px rgba(0, 0, 0, 0.07),
-         0 20px 38px -8px rgba(0, 0, 0, 0.12);
-   }
+const nodeBody = "pointer-events-none select-none";
 
-   width: ${({ $viewport }) => {
-      if ($viewport === "mobile") return "375px";
-      if ($viewport === "tablet") return "768px";
-      return "900px";
-   }};
-`;
-
-const NodeBar = styled.div`
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   padding: 6px 12px;
-   background: #f8fafc;
-   border-bottom: 1px solid #e2e8f0;
-   cursor: grab;
-   user-select: none;
-
-   &:active {
-      cursor: grabbing;
-   }
-`;
-
-const NodeBarLeft = styled.div`
-   display: flex;
-   align-items: center;
-   gap: 8px;
-   font-size: 0.71rem;
-   font-weight: 600;
-   color: #64748b;
-   font-family: var(--inter-font);
-
-   i {
-      color: #94a3b8;
-      font-size: 0.65rem;
-   }
-`;
-
-const TrafficLights = styled.div`
-   display: flex;
-   gap: 5px;
-`;
-
-const TLight = styled.div`
-   width: 10px;
-   height: 10px;
-   border-radius: 50%;
-   background: ${({ $color }) => $color};
-`;
-
-const NodeBody = styled.div`
-   pointer-events: none;
-   user-select: none;
-`;
+// Viewport widths
+const getNodeWidth = (viewport) => {
+   if (viewport === "mobile") return "375px";
+   if (viewport === "tablet") return "768px";
+   return "900px";
+};
 
 // ── Custom Node ────────────────────────────────────────────────
 
@@ -160,22 +66,25 @@ const ComponentNode = memo(({ data }) => {
    const { LiveComponent, config, variantName, viewport } = data;
 
    return (
-      <NodeFrame $viewport={viewport}>
-         <NodeBar className="drag-handle">
-            <NodeBarLeft>
-               <i className="fa-solid fa-puzzle-piece"></i>
+      <div className={nodeFrameBase} style={{ width: getNodeWidth(viewport) }}>
+         {/* Title bar */}
+         <div className={nodeBar}>
+            <div className={nodeBarLeft}>
+               <GripHorizontal size={12} className="text-[#94a3b8]" />
                {variantName}
-            </NodeBarLeft>
-            <TrafficLights>
-               <TLight $color="#ff5f57" />
-               <TLight $color="#febc2e" />
-               <TLight $color="#28c840" />
-            </TrafficLights>
-         </NodeBar>
-         <NodeBody>
+            </div>
+            <div className={trafficLights}>
+               <div className="w-[10px] h-[10px] rounded-full bg-[#ff5f57]" />
+               <div className="w-[10px] h-[10px] rounded-full bg-[#febc2e]" />
+               <div className="w-[10px] h-[10px] rounded-full bg-[#28c840]" />
+            </div>
+         </div>
+
+         {/* Live preview */}
+         <div className={nodeBody}>
             <LiveComponent config={config} />
-         </NodeBody>
-      </NodeFrame>
+         </div>
+      </div>
    );
 });
 
@@ -183,7 +92,21 @@ ComponentNode.displayName = "ComponentNode";
 
 const nodeTypes = { componentNode: ComponentNode };
 
-// ── Component ─────────────────────────────────────────────────
+// ── React Flow CSS overrides (scoped) ─────────────────────────
+
+const RF_STYLES = `
+  .react-flow__attribution          { display: none !important; }
+  .react-flow__controls             { box-shadow: 0 2px 10px rgba(0,0,0,0.08); border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; }
+  .react-flow__controls-button      { background: #fff; border-bottom: 1px solid #f3f4f6; color: #374151; width: 28px; height: 28px; }
+  .react-flow__controls-button:hover{ background: #f9fafb; }
+  .react-flow__controls-button svg  { width: 12px; height: 12px; }
+  .react-flow__minimap              { border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+  .react-flow__node                 { cursor: grab; }
+  .react-flow__node:active          { cursor: grabbing; }
+  .react-flow__handle               { opacity: 0; pointer-events: none; }
+`;
+
+// ── Component ──────────────────────────────────────────────────
 
 const EditorCanvas = ({ variantData, config, viewport, onZoomChange }) => {
    const initialNodes = [
@@ -235,7 +158,10 @@ const EditorCanvas = ({ variantData, config, viewport, onZoomChange }) => {
    );
 
    return (
-      <Wrapper>
+      <div className={wrapper}>
+         {/* Scoped React Flow CSS overrides */}
+         <style>{RF_STYLES}</style>
+
          <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -274,16 +200,13 @@ const EditorCanvas = ({ variantData, config, viewport, onZoomChange }) => {
             />
 
             <Panel position="top-left">
-               <CanvasHint>
-                  <i
-                     className="fa-regular fa-hand"
-                     style={{ color: "#94a3b8" }}
-                  ></i>
+               <div className={canvasHint}>
+                  <Hand size={12} className="text-[#94a3b8] flex-shrink-0" />
                   Drag to pan · Scroll to zoom · Node is draggable
-               </CanvasHint>
+               </div>
             </Panel>
          </ReactFlow>
-      </Wrapper>
+      </div>
    );
 };
 

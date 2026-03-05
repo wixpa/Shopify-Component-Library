@@ -1,90 +1,4 @@
 import { useEffect, useRef } from "react";
-import styled from "styled-components";
-
-// ── Styled Components ──────────────────────────────────────────
-
-const Section = styled.section`
-   background-color: var(--color-bg-white);
-   padding: var(--section-padding);
-`;
-
-const Container = styled.div`
-   max-width: var(--container-max-width);
-   margin: 0 auto;
-   padding: var(--container-padding);
-   display: flex;
-   justify-content: center;
-   align-items: center;
-`;
-
-const FeaturesGrid = styled.div`
-   display: grid;
-   grid-template-columns: 1fr;
-   gap: 2.5rem;
-   width: 100%;
-
-   @media (min-width: 768px) {
-      grid-template-columns: repeat(2, 1fr);
-   }
-
-   @media (min-width: 1024px) {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 4rem;
-   }
-`;
-
-const FeatureCard = styled.article`
-   display: flex;
-   align-items: flex-start;
-   gap: 1rem;
-   opacity: 0;
-   transform: translateY(20px);
-   transition:
-      opacity 0.6s ease-out ${({ $delay }) => $delay}s,
-      transform 0.6s ease-out ${({ $delay }) => $delay}s;
-
-   &.visible {
-      opacity: 1;
-      transform: translateY(0);
-   }
-`;
-
-const FeatureIcon = styled.div`
-   flex-shrink: 0;
-   width: 24px;
-   height: 24px;
-   color: var(--color-icon);
-   margin-top: 0.125rem;
-
-   svg {
-      width: 100%;
-      height: 100%;
-      display: block;
-      stroke-width: 1.5;
-   }
-`;
-
-const FeatureContent = styled.div`
-   display: flex;
-   flex-direction: column;
-   gap: 0.5rem;
-`;
-
-const FeatureTitle = styled.h3`
-   font-size: 1.125rem;
-   font-weight: 600;
-   color: var(--color-text-main);
-   line-height: 1.4;
-   font-family: var(--inter-font);
-`;
-
-const FeatureDescription = styled.p`
-   font-size: 1rem;
-   font-weight: 400;
-   color: var(--color-text-light);
-   line-height: 1.6;
-   font-family: var(--inter-font);
-`;
 
 // ── SVG Icons ──────────────────────────────────────────────────
 
@@ -94,6 +8,8 @@ const TranslateIcon = () => (
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
+      strokeWidth={1.5}
+      className="w-full h-full block"
    >
       <path
          strokeLinecap="round"
@@ -109,6 +25,8 @@ const SmartphoneIcon = () => (
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
+      strokeWidth={1.5}
+      className="w-full h-full block"
    >
       <path
          strokeLinecap="round"
@@ -124,6 +42,8 @@ const MoonIcon = () => (
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
+      strokeWidth={1.5}
+      className="w-full h-full block"
    >
       <path
          strokeLinecap="round"
@@ -159,7 +79,24 @@ const featuresData = [
    },
 ];
 
-// ── Component ─────────────────────────────────────────────────
+// ── Tailwind Classes ───────────────────────────────────────────
+
+const section = "bg-white py-[4rem_1.5rem] px-6";
+const container =
+   "max-w-[1280px] mx-auto flex justify-center items-center py-16 px-6";
+const grid =
+   "grid grid-cols-1 gap-10 w-full md:grid-cols-2 lg:grid-cols-3 lg:gap-16";
+const card =
+   "flex items-start gap-4 opacity-0 translate-y-5 transition-[opacity,transform] duration-[600ms] ease-out";
+const cardVisible = "!opacity-100 !translate-y-0";
+const iconWrap = "flex-shrink-0 w-6 h-6 text-[#374151] mt-[0.125rem]";
+const content = "flex flex-col gap-2";
+const titleCls =
+   "text-[1.125rem] font-semibold text-[#111827] leading-[1.4] font-[var(--inter-font)]";
+const descCls =
+   "text-[1rem] font-normal text-[#6b7280] leading-[1.6] font-[var(--inter-font)]";
+
+// ── Component ──────────────────────────────────────────────────
 
 const FeaturesSection = () => {
    const cardRefs = useRef([]);
@@ -169,7 +106,7 @@ const FeaturesSection = () => {
          (entries) => {
             entries.forEach((entry) => {
                if (entry.isIntersecting) {
-                  entry.target.classList.add("visible");
+                  entry.target.classList.add("!opacity-100", "!translate-y-0");
                   observer.unobserve(entry.target);
                }
             });
@@ -180,34 +117,32 @@ const FeaturesSection = () => {
       cardRefs.current.forEach((card) => {
          if (card) observer.observe(card);
       });
-
       return () => observer.disconnect();
    }, []);
 
    return (
-      <Section aria-label="Key Features">
-         <Container>
-            <FeaturesGrid>
+      <section className={section} aria-label="Key Features">
+         <div className={container}>
+            <div className={grid}>
                {featuresData.map((feature, index) => (
-                  <FeatureCard
+                  <article
                      key={feature.id}
-                     $delay={index * 0.1}
                      ref={(el) => (cardRefs.current[index] = el)}
+                     className={card}
+                     style={{ transitionDelay: `${index * 0.1}s` }}
                   >
-                     <FeatureIcon aria-hidden="true">
+                     <div className={iconWrap} aria-hidden="true">
                         {feature.icon}
-                     </FeatureIcon>
-                     <FeatureContent>
-                        <FeatureTitle>{feature.title}</FeatureTitle>
-                        <FeatureDescription>
-                           {feature.description}
-                        </FeatureDescription>
-                     </FeatureContent>
-                  </FeatureCard>
+                     </div>
+                     <div className={content}>
+                        <h3 className={titleCls}>{feature.title}</h3>
+                        <p className={descCls}>{feature.description}</p>
+                     </div>
+                  </article>
                ))}
-            </FeaturesGrid>
-         </Container>
-      </Section>
+            </div>
+         </div>
+      </section>
    );
 };
 

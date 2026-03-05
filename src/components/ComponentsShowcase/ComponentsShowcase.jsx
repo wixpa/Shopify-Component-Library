@@ -1,643 +1,121 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import styled, { keyframes } from "styled-components";
+import { Box, ArrowRight, Clock } from "lucide-react";
 import { getAllCategories } from "../../registry/componentRegistry";
-
-// ── Animations ─────────────────────────────────────────────────
-
-const fadeUp = keyframes`
-    from { opacity: 0; transform: translateY(22px); }
-    to   { opacity: 1; transform: translateY(0);    }
-`;
-
-// ── Layout ─────────────────────────────────────────────────────
-
-const Section = styled.section`
-   background: var(--color-bg-white);
-   padding: 6rem 0;
-
-   @media (min-width: 1024px) {
-      padding: 8rem 0;
-   }
-`;
-
-const Container = styled.div`
-   max-width: var(--container-max-width);
-   margin: 0 auto;
-   padding: 0 var(--container-padding-x, 1.5rem);
-`;
-
-// ── Section header ─────────────────────────────────────────────
-
-const SectionHeader = styled.header`
-   text-align: center;
-   margin-bottom: 4rem;
-`;
-
-const SectionEyebrow = styled.div`
-   display: inline-flex;
-   align-items: center;
-   gap: 0.5rem;
-   background: rgba(37, 99, 235, 0.07);
-   border: 1px solid rgba(37, 99, 235, 0.15);
-   border-radius: var(--radius-full);
-   padding: 0.3rem 0.9rem;
-   font-size: 0.75rem;
-   font-weight: 700;
-   color: var(--color-primary-blue);
-   text-transform: uppercase;
-   letter-spacing: 0.08em;
-   font-family: var(--inter-font);
-   margin-bottom: 1.25rem;
-
-   i {
-      font-size: 0.7rem;
-   }
-`;
-
-const SectionTitle = styled.h2`
-   font-size: clamp(1.9rem, 3.5vw, 2.75rem);
-   font-weight: 800;
-   color: var(--color-primary-dark);
-   margin-bottom: 1rem;
-   letter-spacing: -0.03em;
-   font-family: var(--inter-font);
-   line-height: 1.1;
-`;
-
-const SectionSubtitle = styled.p`
-   color: var(--color-text-secondary);
-   font-size: 1.05rem;
-   line-height: 1.7;
-   max-width: 580px;
-   margin: 0 auto;
-   font-family: var(--inter-font);
-`;
-
-// ── Grid ───────────────────────────────────────────────────────
-
-const Grid = styled.div`
-   display: grid;
-   grid-template-columns: 1fr;
-   gap: 1.5rem;
-   margin-bottom: 3.5rem;
-
-   @media (min-width: 640px) {
-      grid-template-columns: repeat(2, 1fr);
-   }
-
-   @media (min-width: 1024px) {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.75rem;
-   }
-`;
-
-// ── Card ───────────────────────────────────────────────────────
-
-const Card = styled.article`
-   background: var(--color-bg-white);
-   border: 1px solid var(--color-border);
-   border-radius: 14px;
-   overflow: hidden;
-   display: flex;
-   flex-direction: column;
-   cursor: pointer;
-   opacity: 0;
-   transform: translateY(22px);
-   transition:
-      opacity 0.5s ease ${({ $delay }) => $delay}s,
-      transform 0.5s ease ${({ $delay }) => $delay}s,
-      box-shadow 0.22s ease,
-      border-color 0.22s ease;
-
-   &.visible {
-      opacity: 1;
-      transform: translateY(0);
-   }
-
-   &:hover {
-      box-shadow: 0 16px 48px rgba(15, 23, 42, 0.1);
-      border-color: var(--color-border-hover);
-   }
-
-   &:hover .card-preview-inner {
-      transform: scale(1.02);
-   }
-`;
-
-// ── Card Preview ───────────────────────────────────────────────
-
-const CardPreview = styled.div`
-   height: 200px;
-   width: 100%;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   padding: 1.5rem;
-   position: relative;
-   overflow: hidden;
-   background: ${({ $bg }) => $bg || "var(--color-bg-light)"};
-   flex-shrink: 0;
-`;
-
-const PreviewInner = styled.div`
-   width: 100%;
-   height: 100%;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   transition: transform 0.3s ease;
-`;
-
-// ── Card Footer ────────────────────────────────────────────────
-
-const CardFooter = styled.div`
-   padding: 1.1rem 1.25rem 1.25rem;
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   gap: 0.75rem;
-   border-top: 1px solid var(--color-border);
-   background: var(--color-bg-white);
-`;
-
-const CardInfo = styled.div`
-   flex: 1;
-   min-width: 0;
-`;
-
-const CardName = styled.h3`
-   font-size: 0.95rem;
-   font-weight: 700;
-   color: var(--color-text-main);
-   font-family: var(--inter-font);
-   margin-bottom: 0.2rem;
-   white-space: nowrap;
-   overflow: hidden;
-   text-overflow: ellipsis;
-`;
-
-const CardMeta = styled.span`
-   font-size: 0.75rem;
-   color: var(--color-text-secondary);
-   font-family: var(--inter-font);
-`;
-
-const CardTag = styled.span`
-   display: inline-flex;
-   align-items: center;
-   gap: 5px;
-   font-size: 0.7rem;
-   font-weight: 700;
-   padding: 0.28rem 0.7rem;
-   border-radius: var(--radius-full);
-   white-space: nowrap;
-   font-family: var(--inter-font);
-   flex-shrink: 0;
-   background: ${({ $bg }) => $bg};
-   color: ${({ $color }) => $color};
-
-   i {
-      font-size: 0.62rem;
-   }
-`;
-
-const CardArrow = styled.div`
-   width: 28px;
-   height: 28px;
-   border-radius: 7px;
-   border: 1px solid var(--color-border);
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   font-size: 0.65rem;
-   color: var(--color-text-secondary);
-   flex-shrink: 0;
-   transition:
-      background 0.15s ease,
-      border-color 0.15s ease,
-      color 0.15s ease,
-      transform 0.15s ease;
-
-   ${Card}:hover & {
-      background: var(--color-primary-blue);
-      border-color: var(--color-primary-blue);
-      color: #ffffff;
-      transform: translateX(2px);
-   }
-`;
-
-// ── Footer CTA ─────────────────────────────────────────────────
-
-const FooterAction = styled.div`
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   gap: 0.85rem;
-`;
-
-const FooterHelp = styled.p`
-   font-size: 0.82rem;
-   color: var(--color-text-secondary);
-   font-family: var(--inter-font);
-
-   span {
-      color: var(--color-primary-blue);
-      font-weight: 600;
-      cursor: pointer;
-      &:hover {
-         text-decoration: underline;
-      }
-   }
-`;
-
-const BtnBrowse = styled.button`
-   display: inline-flex;
-   align-items: center;
-   gap: 0.55rem;
-   background: var(--color-primary-dark);
-   color: #ffffff;
-   padding: 0.82rem 2rem;
-   border-radius: var(--radius-md);
-   border: 1px solid var(--color-primary-dark);
-   font-weight: 600;
-   font-size: 0.92rem;
-   font-family: var(--inter-font);
-   cursor: pointer;
-   transition:
-      background 0.15s ease,
-      transform 0.12s ease,
-      box-shadow 0.15s ease;
-
-   i {
-      font-size: 0.8rem;
-      transition: transform 0.15s ease;
-   }
-
-   &:hover {
-      background: #1e293b;
-      transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
-      i {
-         transform: translateX(2px);
-      }
-   }
-   &:active {
-      transform: translateY(0);
-   }
-`;
 
 // ══════════════════════════════════════════════════════════════
 // ── Preview Illustrations ──────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 
-// ── 1. Headers Preview ─────────────────────────────────────────
-
-const PvHeader = styled.div`
-   width: 100%;
-   background: #ffffff;
-   border-radius: 8px;
-   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
-   overflow: hidden;
-   border: 1px solid #e5e7eb;
-`;
-const PvHeaderBar = styled.div`
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   padding: 8px 12px;
-   border-bottom: 1px solid #f3f4f6;
-   background: #fff;
-`;
-const PvLogo = styled.div`
-   width: 48px;
-   height: 7px;
-   background: #0f172a;
-   border-radius: 3px;
-`;
-const PvNavLinks = styled.div`
-   display: flex;
-   gap: 8px;
-   align-items: center;
-`;
-const PvNavLink = styled.div`
-   width: 22px;
-   height: 3px;
-   background: #d1d5db;
-   border-radius: 2px;
-`;
-const PvBtn = styled.div`
-   width: 36px;
-   height: 10px;
-   background: ${({ $bg }) => $bg || "#2563eb"};
-   border-radius: 4px;
-`;
-const PvHeaderAlt = styled(PvHeaderBar)`
-   background: #0f172a;
-   border-bottom: none;
-   margin-top: 4px;
-`;
-const PvLogoWhite = styled(PvLogo)`
-   background: #ffffff;
-`;
-const PvNavLinkWhite = styled(PvNavLink)`
-   background: #475569;
-`;
-
 const HeadersPreview = () => (
-   <PvHeader>
-      {/* Classic white */}
-      <PvHeaderBar>
-         <PvLogo />
-         <PvNavLinks>
-            <PvNavLink />
-            <PvNavLink />
-            <PvNavLink />
-         </PvNavLinks>
-         <PvBtn />
-      </PvHeaderBar>
-      {/* Dark */}
-      <PvHeaderAlt>
-         <PvLogoWhite />
-         <PvNavLinks>
-            <PvNavLinkWhite />
-            <PvNavLinkWhite />
-            <PvNavLinkWhite />
-         </PvNavLinks>
-         <PvBtn $bg="#4f46e5" />
-      </PvHeaderAlt>
-      {/* With search */}
-      <PvHeaderBar style={{ background: "#f9fafb" }}>
-         <PvLogo />
-         <div
-            style={{
-               flex: 1,
-               margin: "0 10px",
-               height: "10px",
-               background: "#f3f4f6",
-               borderRadius: "4px",
-               border: "1px solid #e5e7eb",
-            }}
-         />
-         <PvBtn $bg="#0f172a" />
-      </PvHeaderBar>
-   </PvHeader>
+   <div className="w-full bg-white rounded-lg shadow-[0_4px_16px_rgba(15,23,42,0.1)] overflow-hidden border border-[#e5e7eb]">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-[#f3f4f6] bg-white">
+         <div className="w-12 h-[7px] bg-[#0f172a] rounded-[3px]" />
+         <div className="flex gap-2 items-center">
+            <div className="w-[22px] h-[3px] bg-[#d1d5db] rounded-sm" />
+            <div className="w-[22px] h-[3px] bg-[#d1d5db] rounded-sm" />
+            <div className="w-[22px] h-[3px] bg-[#d1d5db] rounded-sm" />
+         </div>
+         <div className="w-9 h-[10px] bg-[#2563eb] rounded-[4px]" />
+      </div>
+      <div className="flex items-center justify-between px-3 py-2 bg-[#0f172a] mt-1">
+         <div className="w-12 h-[7px] bg-white rounded-[3px]" />
+         <div className="flex gap-2 items-center">
+            <div className="w-[22px] h-[3px] bg-[#475569] rounded-sm" />
+            <div className="w-[22px] h-[3px] bg-[#475569] rounded-sm" />
+            <div className="w-[22px] h-[3px] bg-[#475569] rounded-sm" />
+         </div>
+         <div className="w-9 h-[10px] bg-[#4f46e5] rounded-[4px]" />
+      </div>
+      <div className="flex items-center justify-between px-3 py-2 bg-[#f9fafb]">
+         <div className="w-12 h-[7px] bg-[#0f172a] rounded-[3px]" />
+         <div className="flex-1 mx-[10px] h-[10px] bg-[#f3f4f6] rounded-[4px] border border-[#e5e7eb]" />
+         <div className="w-9 h-[10px] bg-[#0f172a] rounded-[4px]" />
+      </div>
+   </div>
 );
-
-// ── 2. Hero Preview ────────────────────────────────────────────
-
-const PvHeroWrap = styled.div`
-   width: 100%;
-   background: #fff;
-   border-radius: 8px;
-   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
-   border: 1px solid #e5e7eb;
-   overflow: hidden;
-`;
-const PvHeroNav = styled.div`
-   height: 14px;
-   background: #f9fafb;
-   border-bottom: 1px solid #f3f4f6;
-   display: flex;
-   align-items: center;
-   padding: 0 10px;
-   justify-content: space-between;
-`;
-const PvHeroBody = styled.div`
-   padding: 10px 12px 12px;
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   gap: 5px;
-`;
-const PvHeroBadge = styled.div`
-   width: 50px;
-   height: 5px;
-   background: #dbeafe;
-   border-radius: 8px;
-`;
-const PvHeroTitle = styled.div`
-   width: ${({ $w }) => $w || "70%"};
-   height: ${({ $h }) => $h || "5px"};
-   background: ${({ $bg }) => $bg || "#0f172a"};
-   border-radius: 2px;
-`;
-const PvHeroCta = styled.div`
-   display: flex;
-   gap: 4px;
-   margin-top: 2px;
-`;
-const PvHeroCtaBtn = styled.div`
-   width: 28px;
-   height: 7px;
-   background: ${({ $bg }) => $bg || "#2563eb"};
-   border-radius: 3px;
-`;
-const PvHeroStats = styled.div`
-   display: flex;
-   gap: 8px;
-   margin-top: 3px;
-   padding-top: 5px;
-   border-top: 1px solid #f3f4f6;
-   width: 100%;
-   justify-content: center;
-`;
-const PvStat = styled.div`
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   gap: 2px;
-`;
-const PvStatVal = styled.div`
-   width: 18px;
-   height: 4px;
-   background: #0f172a;
-   border-radius: 2px;
-`;
-const PvStatLbl = styled.div`
-   width: 14px;
-   height: 2px;
-   background: #d1d5db;
-   border-radius: 1px;
-`;
 
 const HeroPreview = () => (
-   <PvHeroWrap>
-      <PvHeroNav>
-         <PvLogo style={{ width: 30 }} />
-         <PvNavLinks>
-            <PvNavLink />
-            <PvNavLink />
-            <PvNavLink />
-         </PvNavLinks>
-         <PvNavLink style={{ width: 16 }} />
-      </PvHeroNav>
-      <PvHeroBody>
-         <PvHeroBadge />
-         <PvHeroTitle />
-         <PvHeroTitle $w="50%" $h="4px" $bg="#7c3aed" />
-         <PvHeroTitle $w="55%" $h="3px" $bg="#9ca3af" />
-         <PvHeroTitle $w="80%" $h="2px" $bg="#e5e7eb" />
-         <PvHeroCta>
-            <PvHeroCtaBtn />
-            <PvHeroCtaBtn $bg="#f3f4f6" />
-         </PvHeroCta>
-         <PvHeroStats>
+   <div className="w-full bg-white rounded-lg shadow-[0_4px_16px_rgba(15,23,42,0.1)] border border-[#e5e7eb] overflow-hidden">
+      <div className="h-[14px] bg-[#f9fafb] border-b border-[#f3f4f6] flex items-center px-[10px] justify-between">
+         <div className="w-[30px] h-[7px] bg-[#0f172a] rounded-[3px]" />
+         <div className="flex gap-2">
+            <div className="w-[22px] h-[3px] bg-[#d1d5db] rounded-sm" />
+            <div className="w-[22px] h-[3px] bg-[#d1d5db] rounded-sm" />
+            <div className="w-[22px] h-[3px] bg-[#d1d5db] rounded-sm" />
+         </div>
+         <div className="w-4 h-[3px] bg-[#d1d5db] rounded-sm" />
+      </div>
+      <div className="px-3 pt-[10px] pb-3 flex flex-col items-center gap-[5px]">
+         <div className="w-[50px] h-[5px] bg-[#dbeafe] rounded-lg" />
+         <div className="w-[70%] h-[5px] bg-[#0f172a] rounded-sm" />
+         <div className="w-[50%] h-[4px] bg-[#7c3aed] rounded-sm" />
+         <div className="w-[55%] h-[3px] bg-[#9ca3af] rounded-sm" />
+         <div className="w-[80%] h-[2px] bg-[#e5e7eb] rounded-sm" />
+         <div className="flex gap-1 mt-[2px]">
+            <div className="w-7 h-[7px] bg-[#2563eb] rounded-[3px]" />
+            <div className="w-7 h-[7px] bg-[#f3f4f6] rounded-[3px]" />
+         </div>
+         <div className="flex gap-2 mt-[3px] pt-[5px] border-t border-[#f3f4f6] w-full justify-center">
             {[0, 1, 2].map((i) => (
-               <PvStat key={i}>
-                  <PvStatVal />
-                  <PvStatLbl />
-               </PvStat>
+               <div key={i} className="flex flex-col items-center gap-[2px]">
+                  <div className="w-[18px] h-[4px] bg-[#0f172a] rounded-sm" />
+                  <div className="w-[14px] h-[2px] bg-[#d1d5db] rounded-sm" />
+               </div>
             ))}
-         </PvHeroStats>
-      </PvHeroBody>
-   </PvHeroWrap>
+         </div>
+      </div>
+   </div>
 );
-
-// ── 3. Product Cards Preview ────────────────────────────────────
-
-const PvProductWrap = styled.div`
-   width: 100%;
-   background: #fff;
-   border-radius: 8px;
-   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
-   border: 1px solid #e5e7eb;
-   padding: 10px;
-   display: flex;
-   flex-direction: column;
-   gap: 6px;
-`;
-const PvProductTitle = styled.div`
-   width: 55px;
-   height: 5px;
-   background: #0f172a;
-   border-radius: 2px;
-   margin-bottom: 2px;
-`;
-const PvProductRow = styled.div`
-   display: flex;
-   gap: 6px;
-`;
-const PvProductCard = styled.div`
-   flex: 1;
-   background: #f9fafb;
-   border-radius: 5px;
-   border: 1px solid #f3f4f6;
-   overflow: hidden;
-`;
-const PvProductImg = styled.div`
-   height: 38px;
-   background: ${({ $bg }) => $bg || "#e5e7eb"};
-   position: relative;
-`;
-const PvProductBadge = styled.div`
-   position: absolute;
-   top: 3px;
-   left: 3px;
-   width: 12px;
-   height: 5px;
-   background: #ef4444;
-   border-radius: 2px;
-`;
-const PvProductBody = styled.div`
-   padding: 4px 5px;
-   display: flex;
-   flex-direction: column;
-   gap: 2px;
-`;
-const PvProductLine = styled.div`
-   height: ${({ $h }) => $h || "3px"};
-   width: ${({ $w }) => $w || "70%"};
-   background: ${({ $bg }) => $bg || "#d1d5db"};
-   border-radius: 1px;
-`;
-const PvAddBtn = styled.div`
-   height: 7px;
-   width: 100%;
-   background: #0f172a;
-   border-radius: 2px;
-   margin-top: 2px;
-`;
 
 const ProductCardsPreview = () => (
-   <PvProductWrap>
-      <PvProductTitle />
-      <PvProductRow>
+   <div className="w-full bg-white rounded-lg shadow-[0_4px_16px_rgba(15,23,42,0.1)] border border-[#e5e7eb] p-[10px] flex flex-col gap-[6px]">
+      <div className="w-[55px] h-[5px] bg-[#0f172a] rounded-sm mb-[2px]" />
+      <div className="flex gap-[6px]">
          {["#dbeafe", "#fce7f3", "#dcfce7"].map((bg, i) => (
-            <PvProductCard key={i}>
-               <PvProductImg $bg={bg} style={{ position: "relative" }}>
-                  <PvProductBadge />
-               </PvProductImg>
-               <PvProductBody>
-                  <PvProductLine $w="80%" $bg="#374151" $h="3px" />
-                  <PvProductLine $w="50%" />
-                  <PvProductLine $w="40%" $bg="#2563eb" $h="3px" />
-                  <PvAddBtn />
-               </PvProductBody>
-            </PvProductCard>
+            <div
+               key={i}
+               className="flex-1 bg-[#f9fafb] rounded-[5px] border border-[#f3f4f6] overflow-hidden"
+            >
+               <div className="h-[38px] relative" style={{ background: bg }}>
+                  <div className="absolute top-[3px] left-[3px] w-3 h-[5px] bg-[#ef4444] rounded-[2px]" />
+               </div>
+               <div className="px-[5px] py-1 flex flex-col gap-[2px]">
+                  <div className="h-[3px] w-[80%] bg-[#374151] rounded-sm" />
+                  <div className="h-[3px] w-[50%] bg-[#d1d5db] rounded-sm" />
+                  <div className="h-[3px] w-[40%] bg-[#2563eb] rounded-sm" />
+                  <div className="h-[7px] w-full bg-[#0f172a] rounded-[2px] mt-[2px]" />
+               </div>
+            </div>
          ))}
-      </PvProductRow>
-   </PvProductWrap>
+      </div>
+   </div>
 );
 
-// ── 4. Coming Soon — Templates Preview ─────────────────────────
-
-const PvComingSoon = styled.div`
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   justify-content: center;
-   gap: 6px;
-   width: 100%;
-   height: 100%;
-`;
-const PvCsIcon = styled.div`
-   width: 32px;
-   height: 32px;
-   border-radius: 10px;
-   background: ${({ $bg }) => $bg || "rgba(37,99,235,0.1)"};
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   font-size: 0.88rem;
-   color: ${({ $color }) => $color || "var(--color-primary-blue)"};
-   margin-bottom: 2px;
-`;
-const PvCsLabel = styled.div`
-   font-size: 0.72rem;
-   font-weight: 700;
-   font-family: var(--inter-font);
-   color: var(--color-text-secondary);
-   letter-spacing: 0.05em;
-`;
-const PvCsBadge = styled.div`
-   font-size: 0.62rem;
-   font-weight: 700;
-   background: rgba(234, 88, 12, 0.1);
-   color: #ea580c;
-   padding: 2px 8px;
-   border-radius: 999px;
-   font-family: var(--inter-font);
-   text-transform: uppercase;
-   letter-spacing: 0.07em;
-`;
-
-const ComingSoonPreview = ({ icon, iconBg, iconColor, label }) => (
-   <PvComingSoon>
-      <PvCsIcon $bg={iconBg} $color={iconColor}>
-         <i className={`fa-solid ${icon}`}></i>
-      </PvCsIcon>
-      <PvCsLabel>{label}</PvCsLabel>
-      <PvCsBadge>Coming Soon</PvCsBadge>
-   </PvComingSoon>
+const ComingSoonPreview = () => (
+   <div className="flex flex-col items-center justify-center gap-3 w-full h-full">
+      <div className="w-10 h-10 rounded-xl bg-[rgba(37,99,235,0.08)] flex items-center justify-center">
+         <Clock size={20} className="text-[#2563eb]" />
+      </div>
+      <div className="flex flex-col items-center gap-1">
+         <div className="text-[0.8rem] font-bold text-[#0f172a] font-[var(--inter-font)]">
+            More Coming Soon
+         </div>
+         <div className="text-[0.72rem] text-[#6b7280] font-[var(--inter-font)] text-center leading-[1.4] max-w-[160px]">
+            Product grids, footers, banners, testimonials & more
+         </div>
+      </div>
+      <div className="text-[0.62rem] font-bold bg-[rgba(37,99,235,0.08)] text-[#2563eb] px-3 py-[3px] rounded-full font-[var(--inter-font)] uppercase tracking-[0.07em] border border-[rgba(37,99,235,0.15)]">
+         Shipping weekly
+      </div>
+   </div>
 );
 
 // ══════════════════════════════════════════════════════════════
-// ── Showcase Data — driven by registry + planned items ────────
+// ── Showcase Data ─────────────────────────────────════════════
 // ══════════════════════════════════════════════════════════════
 
 const SHOWCASE = [
-   // ── Live items (from registry) ─────────────────────────
    {
       id: "headers",
       name: "Headers",
@@ -676,161 +154,88 @@ const SHOWCASE = [
       preview: <ProductCardsPreview />,
       live: true,
    },
-
-   // ── Upcoming items ─────────────────────────────────────
    {
-      id: "product-grid",
-      name: "Product Grids",
+      id: "coming-soon",
+      name: "More Coming Soon",
       count: null,
       tag: {
-         label: "E-commerce",
-         bg: "rgba(234,88,12,0.08)",
-         color: "#ea580c",
-      },
-      bg: "#fff7ed",
-      path: null,
-      preview: (
-         <ComingSoonPreview
-            icon="fa-grid-2"
-            iconBg="rgba(234,88,12,0.1)"
-            iconColor="#ea580c"
-            label="Product Grids"
-         />
-      ),
-      live: false,
-   },
-   {
-      id: "announcement-bars",
-      name: "Announcement Bars",
-      count: null,
-      tag: { label: "Marketing", bg: "rgba(22,163,74,0.08)", color: "#16a34a" },
-      bg: "#f0fdf4",
-      path: null,
-      preview: (
-         <ComingSoonPreview
-            icon="fa-bullhorn"
-            iconBg="rgba(22,163,74,0.1)"
-            iconColor="#16a34a"
-            label="Announcement Bars"
-         />
-      ),
-      live: false,
-   },
-   {
-      id: "footers",
-      name: "Footers",
-      count: null,
-      tag: {
-         label: "Navigation",
+         label: "In Progress",
          bg: "rgba(37,99,235,0.08)",
          color: "#2563eb",
       },
-      bg: "#f0f4ff",
+      bg: "#f8faff",
       path: null,
-      preview: (
-         <ComingSoonPreview
-            icon="fa-table-columns"
-            iconBg="rgba(37,99,235,0.1)"
-            iconColor="#2563eb"
-            label="Footers"
-         />
-      ),
-      live: false,
-   },
-   {
-      id: "collection-banners",
-      name: "Collection Banners",
-      count: null,
-      tag: {
-         label: "Marketing",
-         bg: "rgba(124,58,237,0.08)",
-         color: "#7c3aed",
-      },
-      bg: "#f5f0ff",
-      path: null,
-      preview: (
-         <ComingSoonPreview
-            icon="fa-images"
-            iconBg="rgba(124,58,237,0.1)"
-            iconColor="#7c3aed"
-            label="Collection Banners"
-         />
-      ),
-      live: false,
-   },
-   {
-      id: "testimonials",
-      name: "Testimonials",
-      count: null,
-      tag: { label: "Trust", bg: "rgba(234,179,8,0.1)", color: "#ca8a04" },
-      bg: "#fefce8",
-      path: null,
-      preview: (
-         <ComingSoonPreview
-            icon="fa-star"
-            iconBg="rgba(234,179,8,0.1)"
-            iconColor="#ca8a04"
-            label="Testimonials"
-         />
-      ),
-      live: false,
-   },
-   {
-      id: "cart-drawers",
-      name: "Cart Drawers",
-      count: null,
-      tag: {
-         label: "E-commerce",
-         bg: "rgba(234,88,12,0.08)",
-         color: "#ea580c",
-      },
-      bg: "#fff7f0",
-      path: null,
-      preview: (
-         <ComingSoonPreview
-            icon="fa-cart-shopping"
-            iconBg="rgba(234,88,12,0.1)"
-            iconColor="#ea580c"
-            label="Cart Drawers"
-         />
-      ),
+      preview: <ComingSoonPreview />,
       live: false,
    },
 ];
 
-// ── Component ─────────────────────────────────────────────────
+// ── Tailwind Classes ───────────────────────────────────────────
+
+const section =
+   "bg-white border-t border-[#e5e7eb] pt-14 pb-20 lg:pt-16 lg:pb-28";
+const container = "max-w-[1280px] mx-auto px-6";
+
+const sectionHeader = "text-center mb-12";
+const eyebrow =
+   "inline-flex items-center gap-2 bg-[rgba(37,99,235,0.07)] border border-[rgba(37,99,235,0.15)] rounded-full px-[0.9rem] py-[0.3rem] text-[0.75rem] font-bold text-[#2563eb] uppercase tracking-[0.08em] font-[var(--inter-font)] mb-4";
+const sectionTitle =
+   "text-[clamp(1.9rem,3.5vw,2.75rem)] font-extrabold text-[#0f172a] mb-3 tracking-[-0.03em] font-[var(--inter-font)] leading-[1.1]";
+const sectionSub =
+   "text-[#4b5563] text-[1.05rem] leading-[1.7] max-w-[580px] mx-auto font-[var(--inter-font)]";
+
+// 2-col on sm, 4-col on lg so all 4 cards sit in one row
+const grid =
+   "grid grid-cols-1 gap-5 mb-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5";
+
+// Card: left accent border on hover, subtle bg tint — NO shadow, NO transform
+const cardBase =
+   "bg-white border border-[#e5e7eb] rounded-2xl overflow-hidden flex flex-col opacity-0 translate-y-[22px] transition-[opacity,transform,border-color,background-color] duration-500 ease-out [border-left-width:3px] [border-left-color:transparent] hover:[border-left-color:#2563eb] hover:bg-[#fafbff]";
+
+// Card footer — enough vertical padding so title never clips
+const cardFooter =
+   "px-4 pt-3 pb-4 flex flex-col gap-[0.55rem] border-t border-[#e5e7eb] bg-white";
+const cardTopRow = "flex items-start justify-between gap-2";
+const cardName =
+   "text-[0.92rem] font-bold text-[#111827] font-[var(--inter-font)] leading-[1.35]";
+const cardMeta = "text-[0.72rem] text-[#6b7280] font-[var(--inter-font)]";
+const cardBottomRow = "flex items-center justify-between gap-2";
+
+const cardArrow =
+   "w-7 h-7 rounded-[7px] border border-[#e5e7eb] flex items-center justify-center text-[#4b5563] flex-shrink-0 transition-colors duration-150 hover:bg-[#2563eb] hover:border-[#2563eb] hover:text-white";
+
+const footerAction = "flex flex-col items-center gap-3";
+const btnBrowse =
+   "inline-flex items-center gap-[0.55rem] bg-[#0f172a] text-white px-8 py-[0.82rem] rounded-lg border border-[#0f172a] font-semibold text-[0.92rem] font-[var(--inter-font)] cursor-pointer transition-colors duration-150 hover:bg-[#1e293b] hover:border-[#1e293b]";
+const footerHelp = "text-[0.82rem] text-[#4b5563] font-[var(--inter-font)]";
+
+// ── Component ──────────────────────────────────────────────────
 
 const ComponentsShowcase = () => {
    const cardRefs = useRef([]);
    const navigate = useNavigate();
-
-   // ── Intersection observer for staggered entrance ───────
 
    useEffect(() => {
       const observer = new IntersectionObserver(
          (entries) => {
             entries.forEach((entry) => {
                if (entry.isIntersecting) {
-                  entry.target.classList.add("visible");
+                  entry.target.classList.add("!opacity-100", "!translate-y-0");
                   observer.unobserve(entry.target);
                }
             });
          },
          { threshold: 0.08 },
       );
-
       cardRefs.current.forEach((card) => {
          if (card) observer.observe(card);
       });
-
       return () => observer.disconnect();
    }, []);
 
    const handleCardClick = (item) => {
       if (item.live && item.path) navigate(item.path);
    };
-
-   // ── Stats from live registry ───────────────────────────
 
    const categories = getAllCategories();
    const totalVariants = categories.reduce(
@@ -839,35 +244,38 @@ const ComponentsShowcase = () => {
    );
 
    return (
-      <Section>
-         <Container>
-            {/* ── Header ── */}
-            <SectionHeader>
-               <SectionEyebrow>
-                  <i className="fa-solid fa-puzzle-piece"></i>
+      <section className={section}>
+         <div className={container}>
+            {/* ── Section Header ── */}
+            <header className={sectionHeader}>
+               <div className={eyebrow}>
+                  <Box size={11} />
                   Component Library
-               </SectionEyebrow>
-               <SectionTitle>
+               </div>
+               <h2 className={sectionTitle}>
                   Every Section Your Shopify
                   <br />
                   Store Will Ever Need
-               </SectionTitle>
-               <SectionSubtitle>
+               </h2>
+               <p className={sectionSub}>
                   {totalVariants} production-ready sections across{" "}
                   {categories.length} categories — copy, paste, and go live in
                   minutes. More sections shipping every week.
-               </SectionSubtitle>
-            </SectionHeader>
+               </p>
+            </header>
 
             {/* ── Grid ── */}
-            <Grid>
+            <div className={grid}>
                {SHOWCASE.map((item, index) => (
-                  <Card
+                  <article
                      key={item.id}
-                     $delay={(index * 0.06).toFixed(2)}
                      ref={(el) => (cardRefs.current[index] = el)}
+                     className={cardBase}
+                     style={{
+                        transitionDelay: `${(index * 0.08).toFixed(2)}s`,
+                        cursor: item.live ? "pointer" : "default",
+                     }}
                      onClick={() => handleCardClick(item)}
-                     style={{ cursor: item.live ? "pointer" : "default" }}
                      role={item.live ? "button" : "article"}
                      tabIndex={item.live ? 0 : undefined}
                      onKeyDown={(e) => {
@@ -881,52 +289,70 @@ const ComponentsShowcase = () => {
                      }
                   >
                      {/* Preview area */}
-                     <CardPreview $bg={item.bg}>
-                        <PreviewInner className="card-preview-inner">
-                           {item.preview}
-                        </PreviewInner>
-                     </CardPreview>
+                     <div
+                        className="h-[180px] w-full flex items-center justify-center p-5 overflow-hidden flex-shrink-0"
+                        style={{ background: item.bg }}
+                     >
+                        {item.preview}
+                     </div>
 
-                     {/* Footer row */}
-                     <CardFooter>
-                        <CardInfo>
-                           <CardName>{item.name}</CardName>
-                           <CardMeta>
+                     {/* Footer */}
+                     <div className={cardFooter}>
+                        {/* Top row: name + arrow */}
+                        <div className={cardTopRow}>
+                           <div className="flex-1 min-w-0">
+                              <div className={cardName}>{item.name}</div>
+                           </div>
+                           {item.live && (
+                              <div className={cardArrow} aria-hidden="true">
+                                 <ArrowRight size={12} />
+                              </div>
+                           )}
+                        </div>
+
+                        {/* Bottom row: meta + tag */}
+                        <div className={cardBottomRow}>
+                           <span className={cardMeta}>
                               {item.live
                                  ? `${item.count} variant${item.count === 1 ? "" : "s"}`
                                  : "Coming soon"}
-                           </CardMeta>
-                        </CardInfo>
-
-                        <CardTag $bg={item.tag.bg} $color={item.tag.color}>
-                           {item.tag.label}
-                        </CardTag>
-
-                        {item.live && (
-                           <CardArrow aria-hidden>
-                              <i className="fa-solid fa-arrow-right"></i>
-                           </CardArrow>
-                        )}
-                     </CardFooter>
-                  </Card>
+                           </span>
+                           <span
+                              className="inline-flex items-center text-[0.68rem] font-bold px-[0.6rem] py-[0.22rem] rounded-full whitespace-nowrap font-[var(--inter-font)] flex-shrink-0"
+                              style={{
+                                 background: item.tag.bg,
+                                 color: item.tag.color,
+                              }}
+                           >
+                              {item.tag.label}
+                           </span>
+                        </div>
+                     </div>
+                  </article>
                ))}
-            </Grid>
+            </div>
 
             {/* ── Footer CTA ── */}
-            <FooterAction>
-               <BtnBrowse onClick={() => navigate("/components")}>
+            <div className={footerAction}>
+               <button
+                  className={btnBrowse}
+                  onClick={() => navigate("/components")}
+               >
                   Browse All Components
-                  <i className="fa-solid fa-arrow-right"></i>
-               </BtnBrowse>
-               <FooterHelp>
+                  <ArrowRight size={14} />
+               </button>
+               <p className={footerHelp}>
                   Want a specific section?{" "}
-                  <span onClick={() => navigate("/docs")}>
+                  <span
+                     className="text-[#2563eb] font-semibold cursor-pointer hover:underline"
+                     onClick={() => navigate("/docs")}
+                  >
                      Request it here →
                   </span>
-               </FooterHelp>
-            </FooterAction>
-         </Container>
-      </Section>
+               </p>
+            </div>
+         </div>
+      </section>
    );
 };
 

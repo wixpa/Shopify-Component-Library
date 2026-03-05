@@ -1,118 +1,31 @@
 import { useParams, useNavigate } from "react-router-dom";
-import styled from "styled-components";
+import { ArrowLeft } from "lucide-react";
 import { getCategoryBySlug } from "../registry/componentRegistry";
 import { VariantsGrid } from "./ComponentsPage";
 
-// ── Page header ────────────────────────────────────────────────
+// ── Tailwind Classes ───────────────────────────────────────────
 
-const PageHeader = styled.header`
-   margin-bottom: 48px;
-`;
+const pageHeader = "mb-12";
+const pageTitle =
+   "text-[clamp(1.6rem,3vw,2.5rem)] font-extrabold text-[var(--color-nav-text)] tracking-[-0.025em] font-[var(--inter-font)] leading-[1.1] flex items-center flex-wrap gap-[14px] mb-3";
+const variantBadge =
+   "text-[0.8rem] font-semibold bg-[var(--color-badge-gray-bg)] text-[var(--color-nav-text-secondary)] px-3 py-[3px] rounded-full font-[var(--inter-font)] flex-shrink-0 align-middle";
+const pageDesc =
+   "text-[1.05rem] text-[var(--color-nav-text-secondary)] leading-[1.6] max-w-[700px] font-[var(--inter-font)] m-0 sm:text-[1rem]";
 
-const PageTitle = styled.h1`
-   font-size: 2.5rem;
-   font-weight: 800;
-   color: var(--color-nav-text);
-   letter-spacing: -0.025em;
-   margin-bottom: 12px;
-   font-family: var(--inter-font);
-   display: flex;
-   align-items: center;
-   flex-wrap: wrap;
-   gap: 14px;
+const divider =
+   "border-none border-t border-[var(--color-sidebar-border)] mb-10 h-px bg-[var(--color-sidebar-border)]";
 
-   @media (max-width: 768px) {
-      font-size: 2rem;
-   }
+// Not found
+const notFound = "text-center py-20 px-6 font-[var(--inter-font)]";
+const notFoundTitle =
+   "text-[1.5rem] font-bold text-[var(--color-nav-text)] mb-3";
+const notFoundDesc =
+   "text-[var(--color-nav-text-secondary)] text-[1rem] mb-6 leading-[1.6]";
+const backBtn =
+   "inline-flex items-center gap-2 px-6 py-[0.62rem] bg-[var(--color-nav-active)] text-white border-none rounded-lg text-[0.9rem] font-semibold font-[var(--inter-font)] cursor-pointer transition-colors duration-150 hover:bg-[#1d4ed8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-nav-active)]";
 
-   @media (max-width: 480px) {
-      font-size: 1.6rem;
-      gap: 10px;
-   }
-`;
-
-const VariantBadge = styled.span`
-   font-size: 0.8rem;
-   font-weight: 600;
-   background-color: var(--color-badge-gray-bg);
-   color: var(--color-nav-text-secondary);
-   padding: 3px 12px;
-   border-radius: var(--radius-full);
-   font-family: var(--inter-font);
-   vertical-align: middle;
-   flex-shrink: 0;
-`;
-
-const PageDescription = styled.p`
-   font-size: 1.125rem;
-   color: var(--color-nav-text-secondary);
-   line-height: 1.6;
-   max-width: 700px;
-   font-family: var(--inter-font);
-   margin: 0;
-
-   @media (max-width: 640px) {
-      font-size: 1rem;
-   }
-`;
-
-// ── Not found state ────────────────────────────────────────────
-
-const NotFound = styled.div`
-   text-align: center;
-   padding: 80px 24px;
-   font-family: var(--inter-font);
-
-   h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--color-nav-text);
-      margin-bottom: 12px;
-   }
-
-   p {
-      color: var(--color-nav-text-secondary);
-      font-size: 1rem;
-      margin-bottom: 24px;
-      line-height: 1.6;
-   }
-
-   strong {
-      color: var(--color-nav-text);
-   }
-`;
-
-const BackBtn = styled.button`
-   padding: 10px 24px;
-   background: var(--color-nav-active);
-   color: white;
-   border: none;
-   border-radius: var(--radius-md);
-   font-size: 0.9rem;
-   font-weight: 600;
-   font-family: var(--inter-font);
-   cursor: pointer;
-   transition: var(--transition-fast);
-
-   &:hover {
-      background: #0066cc;
-   }
-
-   &:focus-visible {
-      outline: 2px solid var(--color-nav-active);
-      outline-offset: 3px;
-   }
-`;
-
-// ── Divider ────────────────────────────────────────────────────
-
-const Divider = styled.hr`
-   border: none;
-   border-top: 1px solid var(--color-sidebar-border);
-   margin-bottom: 40px;
-`;
-
-// ── Component ─────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────
 
 const ComponentCategoryPage = () => {
    const { section } = useParams();
@@ -123,16 +36,19 @@ const ComponentCategoryPage = () => {
 
    if (!category) {
       return (
-         <NotFound>
-            <h2>Category not found</h2>
-            <p>
-               <strong>"{section}"</strong> does not exist in the component
-               library.
+         <div className={notFound}>
+            <h2 className={notFoundTitle}>Category not found</h2>
+            <p className={notFoundDesc}>
+               <strong className="text-[var(--color-nav-text)]">
+                  "{section}"
+               </strong>{" "}
+               does not exist in the component library.
             </p>
-            <BackBtn onClick={() => navigate("/components")}>
-               ← Back to All Components
-            </BackBtn>
-         </NotFound>
+            <button className={backBtn} onClick={() => navigate("/components")}>
+               <ArrowLeft size={15} />
+               Back to All Components
+            </button>
+         </div>
       );
    }
 
@@ -140,18 +56,18 @@ const ComponentCategoryPage = () => {
 
    return (
       <>
-         <PageHeader>
-            <PageTitle>
+         <header className={pageHeader}>
+            <h1 className={pageTitle}>
                {category.title}
-               <VariantBadge>
+               <span className={variantBadge}>
                   {category.variants.length}{" "}
                   {category.variants.length === 1 ? "variant" : "variants"}
-               </VariantBadge>
-            </PageTitle>
-            <PageDescription>{category.description}</PageDescription>
-         </PageHeader>
+               </span>
+            </h1>
+            <p className={pageDesc}>{category.description}</p>
+         </header>
 
-         <Divider />
+         <hr className={divider} />
 
          <VariantsGrid category={category} />
       </>
