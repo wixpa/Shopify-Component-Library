@@ -20,6 +20,7 @@ import { getHeroV3Code } from "../ui/hero/HeroV3";
 import { getProductCardsV1Code } from "../ui/product-cards/ProductCardsV1";
 import { getProductCardsV2Code } from "../ui/product-cards/ProductCardsV2";
 import { getProductCardsV3Code } from "../ui/product-cards/ProductCardsV3";
+import { getFooterV1Code } from "../ui/footer/FooterV1";
 
 const generateComponentCode = (variantId, config) => {
    switch (variantId) {
@@ -41,6 +42,8 @@ const generateComponentCode = (variantId, config) => {
          return getProductCardsV2Code(config);
       case "product-cards-v3":
          return getProductCardsV3Code(config);
+      case "footer-v1":
+         return getFooterV1Code(config);
       default:
          return `<!-- No code generator found for variant: "${variantId}" -->`;
    }
