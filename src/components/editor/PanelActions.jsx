@@ -1,106 +1,78 @@
-import styled, { keyframes, css } from "styled-components";
+import { Check, Code, RotateCcw } from "lucide-react";
 
-// ── Animations ─────────────────────────────────────────────────
+// ── Tailwind Classes ───────────────────────────────────────────
 
-const pop = keyframes`
-    0%, 100% { transform: scale(1); }
+const wrap = [
+   "px-4 py-3 flex flex-col gap-[7px]",
+   "border-b border-[#f3f4f6] flex-shrink-0",
+].join(" ");
+
+const getPrimaryBtn = (copied) =>
+   [
+      "w-full px-4 py-[10px] border-none rounded-lg",
+      "text-[0.85rem] font-semibold font-[var(--inter-font)] text-white",
+      "flex items-center justify-center gap-2 cursor-pointer",
+      "transition-[background] duration-[250ms] ease",
+      "focus-visible:outline-2 focus-visible:outline-[#3b82f6] focus-visible:outline-offset-2",
+      copied
+         ? "bg-[#059669] hover:bg-[#047857] animate-[pop_0.2s_ease]"
+         : "bg-[#111827] hover:bg-[#1f2937]",
+   ].join(" ");
+
+const secondaryBtn = [
+   "w-full px-4 py-2 rounded-lg border border-[#e5e7eb]",
+   "bg-transparent text-[#374151]",
+   "text-[0.82rem] font-medium font-[var(--inter-font)]",
+   "flex items-center justify-center gap-[7px] cursor-pointer",
+   "transition-[background,border-color,color] duration-150 ease",
+   "hover:bg-[#f9fafb] hover:border-[#d1d5db] hover:text-[#111827]",
+   "focus-visible:outline-2 focus-visible:outline-[#3b82f6] focus-visible:outline-offset-2",
+].join(" ");
+
+// ── Pop keyframe (inline style tag) ───────────────────────────
+
+const POP_STYLE = `
+  @keyframes pop {
+    0%, 100% { transform: scale(1);    }
     50%       { transform: scale(0.95); }
+  }
 `;
 
-// ── Styled ─────────────────────────────────────────────────────
-
-const Wrap = styled.div`
-   padding: 12px 16px;
-   display: flex;
-   flex-direction: column;
-   gap: 7px;
-   border-bottom: 1px solid #f3f4f6;
-   flex-shrink: 0;
-`;
-
-const Primary = styled.button`
-   width: 100%;
-   padding: 10px 16px;
-   background: ${({ $copied }) => ($copied ? "#059669" : "#111827")};
-   color: #ffffff;
-   border: none;
-   border-radius: 8px;
-   font-size: 0.85rem;
-   font-weight: 600;
-   font-family: var(--inter-font);
-   cursor: pointer;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   gap: 8px;
-   transition: background 0.25s ease;
-
-   /* Only animate when copied fires — avoids running on every render */
-   ${({ $copied }) =>
-      $copied &&
-      css`
-         animation: ${pop} 0.2s ease;
-      `}
-
-   &:hover {
-      background: ${({ $copied }) => ($copied ? "#047857" : "#1f2937")};
-   }
-
-   &:focus-visible {
-      outline: 2px solid #3b82f6;
-      outline-offset: 2px;
-   }
-`;
-
-const Secondary = styled.button`
-   width: 100%;
-   padding: 8px 16px;
-   background: transparent;
-   color: #374151;
-   border: 1px solid #e5e7eb;
-   border-radius: 8px;
-   font-size: 0.82rem;
-   font-weight: 500;
-   font-family: var(--inter-font);
-   cursor: pointer;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   gap: 7px;
-   transition: all 0.15s ease;
-
-   &:hover {
-      background: #f9fafb;
-      border-color: #d1d5db;
-      color: #111827;
-   }
-
-   &:focus-visible {
-      outline: 2px solid #3b82f6;
-      outline-offset: 2px;
-   }
-`;
-
-// ── Component ─────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────
 
 const PanelActions = ({ onCopy, onReset, copied }) => (
-   <Wrap>
-      <Primary
-         $copied={copied}
+   <div className={wrap}>
+      <style>{POP_STYLE}</style>
+
+      {/* Copy code — primary */}
+      <button
+         className={getPrimaryBtn(copied)}
          onClick={onCopy}
          aria-label={
             copied ? "Code copied to clipboard" : "Copy component code"
          }
       >
-         <i className={`fa-solid ${copied ? "fa-check" : "fa-code"}`}></i>
-         {copied ? "Code Copied to Clipboard!" : "Copy Code"}
-      </Primary>
+         {copied ? (
+            <>
+               <Check size={14} /> Code Copied to Clipboard!
+            </>
+         ) : (
+            <>
+               <Code size={14} /> Copy Code
+            </>
+         )}
+      </button>
 
-      <Secondary onClick={onReset} aria-label="Reset all settings to defaults">
-         <i className="fa-solid fa-rotate-left"></i>
+      {/* Reset — secondary */}
+      <button
+         className={secondaryBtn}
+         onClick={onReset}
+         aria-label="Reset all settings to defaults"
+      >
+         <RotateCcw size={13} />
          Reset to Defaults
-      </Secondary>
-   </Wrap>
+      </button>
+   </div>
 );
 
 export default PanelActions;

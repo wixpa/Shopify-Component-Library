@@ -1,346 +1,70 @@
 import { useNavigate } from "react-router-dom";
-import styled, { keyframes } from "styled-components";
+import {
+   LayoutGrid,
+   Layers,
+   Box,
+   Star,
+   Folder,
+   ArrowRight,
+   Wand2,
+   PackageOpen,
+} from "lucide-react";
 import { getAllCategories } from "../registry/componentRegistry";
 
-// ── Animations ─────────────────────────────────────────────────
+// ── Tailwind Classes ───────────────────────────────────────────
 
-const fadeUp = keyframes`
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0);    }
-`;
+const pageHeader = "mb-12 animate-[fadeUp_0.5s_ease_both]";
+const headerTop = "flex items-start justify-between gap-6 flex-wrap mb-4";
+const titleGroup = "flex flex-col gap-[0.35rem]";
+const pageEyebrow =
+   "inline-flex items-center gap-[0.4rem] text-[0.7rem] font-bold text-[#2563eb] uppercase tracking-[0.09em] font-[var(--inter-font)]";
+const pageTitle =
+   "text-[clamp(1.6rem,3vw,2.4rem)] font-extrabold text-[var(--color-nav-text)] tracking-[-0.03em] font-[var(--inter-font)] leading-[1.1]";
+const pageDesc =
+   "text-[0.92rem] text-[var(--color-nav-text-secondary)] leading-[1.7] max-w-[580px] font-[var(--inter-font)] mt-1";
 
-// ── Page Header ────────────────────────────────────────────────
+const statsRow = "flex items-center gap-[0.6rem] flex-wrap sm:w-auto w-full";
+const statChip =
+   "inline-flex items-center gap-[0.4rem] bg-[var(--color-bg-light,#f9fafb)] border border-[var(--color-sidebar-border)] rounded-full px-[0.85rem] py-[0.3rem] text-[0.72rem] font-semibold text-[var(--color-nav-text-secondary)] font-[var(--inter-font)] whitespace-nowrap";
 
-const PageHeader = styled.header`
-   margin-bottom: 3rem;
-   animation: ${fadeUp} 0.5s ease both;
-`;
+const categorySection = "mb-14";
+const sectionHeading =
+   "flex items-center justify-between gap-4 flex-wrap mb-[0.65rem]";
+const sectionTitle =
+   "text-[1.05rem] font-bold text-[var(--color-nav-text)] font-[var(--inter-font)] flex items-center gap-[0.55rem]";
+const sectionBadge =
+   "text-[0.66rem] font-bold bg-[var(--color-nav-active-bg)] text-[var(--color-nav-active)] px-2 py-[2px] rounded-full font-[var(--inter-font)] border border-[rgba(37,99,235,0.15)]";
+const viewAllBtn =
+   "group inline-flex items-center gap-[0.35rem] text-[0.75rem] font-semibold text-[#2563eb] bg-transparent border-none cursor-pointer font-[var(--inter-font)] p-0 whitespace-nowrap transition-opacity duration-150 hover:opacity-70";
+const sectionDivider = "w-full h-px bg-[var(--color-sidebar-border)] mb-6";
 
-const HeaderTop = styled.div`
-   display: flex;
-   align-items: flex-start;
-   justify-content: space-between;
-   gap: 1.5rem;
-   flex-wrap: wrap;
-   margin-bottom: 1rem;
-`;
+const cardsGrid =
+   "grid grid-cols-1 gap-5 sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]";
 
-const TitleGroup = styled.div`
-   display: flex;
-   flex-direction: column;
-   gap: 0.35rem;
-`;
+// Card — left blue border accent on hover, NO shadow, NO transform
+const cardBase =
+   "border border-[var(--color-sidebar-border)] [border-left-width:3px] [border-left-color:transparent] rounded-xl overflow-hidden bg-[var(--color-bg-white)] flex flex-col cursor-pointer transition-[border-color,background-color] duration-200 ease-out hover:[border-left-color:#2563eb] hover:bg-[#fafbff]";
 
-const PageEyebrow = styled.div`
-   display: inline-flex;
-   align-items: center;
-   gap: 0.4rem;
-   font-size: 0.7rem;
-   font-weight: 700;
-   color: var(--color-primary-blue);
-   text-transform: uppercase;
-   letter-spacing: 0.09em;
-   font-family: var(--inter-font);
+const cardPreview =
+   "h-[220px] bg-[var(--color-bg-light,#f9fafb)] flex items-start justify-center border-b border-[var(--color-sidebar-border)] overflow-hidden pointer-events-none relative";
+const previewScaler =
+   "absolute top-0 left-1/2 -translate-x-1/2 w-[238%] scale-[0.42] origin-top pointer-events-none";
+const previewOverlay =
+   "absolute inset-0 bg-[rgba(37,99,235,0.04)] opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[1] pointer-events-none";
 
-   i {
-      font-size: 0.62rem;
-   }
-`;
+const cardFooter =
+   "px-[14px] py-3 flex items-center justify-between gap-[10px] bg-white flex-shrink-0";
+const cardNameWrap = "flex flex-col gap-[2px] min-w-0 flex-1";
+const cardName =
+   "text-[0.86rem] font-bold text-[var(--color-nav-text)] font-[var(--inter-font)] whitespace-nowrap overflow-hidden text-ellipsis leading-[1.2]";
+const cardSlug =
+   "text-[0.68rem] text-[var(--color-nav-text-secondary)] font-[var(--inter-font)] whitespace-nowrap overflow-hidden text-ellipsis opacity-70";
+const customizeBtn =
+   "inline-flex items-center gap-[0.35rem] text-[0.72rem] font-semibold px-[13px] py-[6px] rounded-full bg-[var(--color-nav-active-bg)] text-[var(--color-nav-active)] border border-[rgba(37,99,235,0.18)] font-[var(--inter-font)] cursor-pointer whitespace-nowrap flex-shrink-0 transition-[background,color,border-color] duration-150 hover:bg-[var(--color-nav-active)] hover:text-white hover:border-[var(--color-nav-active)]";
 
-const PageTitle = styled.h1`
-   font-size: clamp(1.6rem, 3vw, 2.4rem);
-   font-weight: 800;
-   color: var(--color-nav-text);
-   letter-spacing: -0.03em;
-   font-family: var(--inter-font);
-   line-height: 1.1;
-`;
-
-const PageDescription = styled.p`
-   font-size: 0.92rem;
-   color: var(--color-nav-text-secondary);
-   line-height: 1.7;
-   max-width: 580px;
-   font-family: var(--inter-font);
-   margin-top: 0.25rem;
-`;
-
-const StatsRow = styled.div`
-   display: flex;
-   align-items: center;
-   gap: 0.6rem;
-   flex-wrap: wrap;
-
-   @media (max-width: 640px) {
-      width: 100%;
-   }
-`;
-
-const StatChip = styled.div`
-   display: inline-flex;
-   align-items: center;
-   gap: 0.4rem;
-   background: var(--color-bg-light, #f9fafb);
-   border: 1px solid var(--color-sidebar-border);
-   border-radius: var(--radius-full);
-   padding: 0.3rem 0.85rem;
-   font-size: 0.72rem;
-   font-weight: 600;
-   color: var(--color-nav-text-secondary);
-   font-family: var(--inter-font);
-   white-space: nowrap;
-
-   i {
-      font-size: 0.62rem;
-      color: var(--color-primary-blue);
-   }
-`;
-
-// ── Category Section ───────────────────────────────────────────
-
-const CategorySection = styled.section`
-   margin-bottom: 3.5rem;
-   animation: ${fadeUp} 0.5s ease both;
-   animation-delay: ${({ $delay }) => $delay || "0s"};
-`;
-
-const SectionHeading = styled.div`
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   gap: 1rem;
-   margin-bottom: 0.65rem;
-   flex-wrap: wrap;
-`;
-
-const SectionTitle = styled.h2`
-   font-size: 1.05rem;
-   font-weight: 700;
-   color: var(--color-nav-text);
-   font-family: var(--inter-font);
-   display: flex;
-   align-items: center;
-   gap: 0.55rem;
-
-   i {
-      font-size: 0.82rem;
-      color: var(--color-primary-blue);
-      opacity: 0.75;
-   }
-`;
-
-const SectionBadge = styled.span`
-   font-size: 0.66rem;
-   font-weight: 700;
-   background: var(--color-nav-active-bg);
-   color: var(--color-nav-active);
-   padding: 2px 8px;
-   border-radius: var(--radius-full);
-   font-family: var(--inter-font);
-   border: 1px solid rgba(37, 99, 235, 0.15);
-`;
-
-const ViewAllBtn = styled.button`
-   display: inline-flex;
-   align-items: center;
-   gap: 0.35rem;
-   font-size: 0.75rem;
-   font-weight: 600;
-   color: var(--color-primary-blue);
-   background: none;
-   border: none;
-   cursor: pointer;
-   font-family: var(--inter-font);
-   padding: 0;
-   transition: opacity 0.14s ease;
-   white-space: nowrap;
-
-   i {
-      font-size: 0.62rem;
-      transition: transform 0.14s ease;
-   }
-
-   &:hover {
-      opacity: 0.7;
-      i {
-         transform: translateX(2px);
-      }
-   }
-`;
-
-const SectionDivider = styled.div`
-   width: 100%;
-   height: 1px;
-   background: var(--color-sidebar-border);
-   margin-bottom: 1.5rem;
-`;
-
-// ── Cards Grid ─────────────────────────────────────────────────
-
-const CardsGrid = styled.div`
-   display: grid;
-   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-   gap: 1.25rem;
-
-   @media (max-width: 640px) {
-      grid-template-columns: 1fr;
-   }
-`;
-
-// ── Card ───────────────────────────────────────────────────────
-
-const Card = styled.div`
-   border: 1px solid var(--color-sidebar-border);
-   border-radius: 12px;
-   overflow: hidden;
-   background: var(--color-bg-white);
-   display: flex;
-   flex-direction: column;
-   cursor: pointer;
-   transition:
-      border-color 0.18s ease,
-      box-shadow 0.18s ease,
-      transform 0.18s ease;
-
-   &:hover {
-      border-color: var(--color-nav-active);
-      box-shadow: 0 8px 28px rgba(37, 99, 235, 0.1);
-      transform: translateY(-2px);
-   }
-
-   &:active {
-      transform: translateY(0);
-      box-shadow: none;
-   }
-`;
-
-const CardPreview = styled.div`
-   height: 220px;
-   background: var(--color-bg-light, #f9fafb);
-   display: flex;
-   align-items: flex-start;
-   justify-content: center;
-   border-bottom: 1px solid var(--color-sidebar-border);
-   overflow: hidden;
-   pointer-events: none;
-   position: relative;
-`;
-
-const PreviewScaler = styled.div`
-   transform: scale(0.42);
-   transform-origin: top center;
-   width: 238%;
-   pointer-events: none;
-   position: absolute;
-   top: 0;
-   left: 50%;
-   translate: -50% 0;
-`;
-
-const PreviewOverlay = styled.div`
-   position: absolute;
-   inset: 0;
-   background: rgba(37, 99, 235, 0.04);
-   opacity: 0;
-   transition: opacity 0.18s ease;
-   z-index: 1;
-   pointer-events: none;
-
-   ${Card}:hover & {
-      opacity: 1;
-   }
-`;
-
-const CardFooter = styled.div`
-   padding: 12px 14px;
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   gap: 10px;
-   background: #ffffff;
-   flex-shrink: 0;
-`;
-
-const CardNameWrap = styled.div`
-   display: flex;
-   flex-direction: column;
-   gap: 2px;
-   min-width: 0;
-   flex: 1;
-`;
-
-const CardName = styled.span`
-   font-size: 0.86rem;
-   font-weight: 700;
-   color: var(--color-nav-text);
-   font-family: var(--inter-font);
-   white-space: nowrap;
-   overflow: hidden;
-   text-overflow: ellipsis;
-   line-height: 1.2;
-`;
-
-const CardSlug = styled.span`
-   font-size: 0.68rem;
-   color: var(--color-nav-text-secondary);
-   font-family: var(--inter-font);
-   white-space: nowrap;
-   overflow: hidden;
-   text-overflow: ellipsis;
-   opacity: 0.7;
-`;
-
-const CustomizeBtn = styled.button`
-   display: inline-flex;
-   align-items: center;
-   gap: 0.35rem;
-   font-size: 0.72rem;
-   font-weight: 600;
-   padding: 6px 13px;
-   border-radius: var(--radius-full);
-   background: var(--color-nav-active-bg);
-   color: var(--color-nav-active);
-   border: 1px solid rgba(37, 99, 235, 0.18);
-   font-family: var(--inter-font);
-   cursor: pointer;
-   white-space: nowrap;
-   flex-shrink: 0;
-   transition:
-      background 0.14s ease,
-      color 0.14s ease,
-      border-color 0.14s ease;
-
-   i {
-      font-size: 0.62rem;
-   }
-
-   &:hover {
-      background: var(--color-nav-active);
-      color: #ffffff;
-      border-color: var(--color-nav-active);
-   }
-`;
-
-// ── Empty States ───────────────────────────────────────────────
-
-const EmptyState = styled.div`
-   text-align: center;
-   padding: 4rem 2rem;
-   color: var(--color-nav-text-secondary);
-   font-family: var(--inter-font);
-
-   i {
-      font-size: 2rem;
-      opacity: 0.25;
-      margin-bottom: 1rem;
-      display: block;
-   }
-
-   p {
-      font-size: 0.88rem;
-      line-height: 1.7;
-   }
-`;
+const emptyState =
+   "text-center py-16 px-8 text-[var(--color-nav-text-secondary)] font-[var(--inter-font)]";
+const emptyText = "text-[0.88rem] leading-[1.7] mt-4";
 
 // ══════════════════════════════════════════════════════════════
 // ── Exported VariantsGrid ─────────────────────────────────────
@@ -351,24 +75,25 @@ export const VariantsGrid = ({ category }) => {
 
    if (!category?.variants?.length) {
       return (
-         <EmptyState>
-            <i className="fa-solid fa-cube"></i>
-            <p>
+         <div className={emptyState}>
+            <Box size={32} className="opacity-25 mx-auto" />
+            <p className={emptyText}>
                No variants yet for this category.
                <br />
                Check back soon!
             </p>
-         </EmptyState>
+         </div>
       );
    }
 
    return (
-      <CardsGrid>
+      <div className={cardsGrid}>
          {category.variants.map((variant) => {
             const LiveComponent = variant.component;
             return (
-               <Card
+               <div
                   key={variant.id}
+                  className={`${cardBase} group`}
                   onClick={() =>
                      navigate(`/components/${category.slug}/${variant.id}`)
                   }
@@ -380,22 +105,27 @@ export const VariantsGrid = ({ category }) => {
                   }}
                   aria-label={`Open ${variant.name} in live editor`}
                >
-                  <CardPreview>
-                     <PreviewScaler>
+                  {/* Preview */}
+                  <div className={cardPreview}>
+                     <div className={previewScaler}>
                         <LiveComponent config={variant.defaultConfig} />
-                     </PreviewScaler>
-                     <PreviewOverlay />
-                  </CardPreview>
+                     </div>
+                     <div className={previewOverlay} />
+                  </div>
 
-                  <CardFooter>
-                     <CardNameWrap>
-                        <CardName title={variant.name}>{variant.name}</CardName>
-                        <CardSlug>
+                  {/* Footer */}
+                  <div className={cardFooter}>
+                     <div className={cardNameWrap}>
+                        <span className={cardName} title={variant.name}>
+                           {variant.name}
+                        </span>
+                        <span className={cardSlug}>
                            {category.slug}/{variant.id}
-                        </CardSlug>
-                     </CardNameWrap>
+                        </span>
+                     </div>
 
-                     <CustomizeBtn
+                     <button
+                        className={customizeBtn}
                         onClick={(e) => {
                            e.stopPropagation();
                            navigate(
@@ -404,14 +134,14 @@ export const VariantsGrid = ({ category }) => {
                         }}
                         aria-label={`Open ${variant.name} editor`}
                      >
-                        <i className="fa-solid fa-wand-magic-sparkles"></i>
+                        <Wand2 size={10} />
                         Open Editor
-                     </CustomizeBtn>
-                  </CardFooter>
-               </Card>
+                     </button>
+                  </div>
+               </div>
             );
          })}
-      </CardsGrid>
+      </div>
    );
 };
 
@@ -430,76 +160,87 @@ const ComponentsPage = () => {
 
    return (
       <>
-         <PageHeader>
-            <HeaderTop>
-               <TitleGroup>
-                  <PageEyebrow>
-                     <i className="fa-solid fa-puzzle-piece"></i>
+         {/* ── Page Header ── */}
+         <header className={pageHeader}>
+            <div className={headerTop}>
+               <div className={titleGroup}>
+                  <div className={pageEyebrow}>
+                     <LayoutGrid size={11} />
                      Component Library
-                  </PageEyebrow>
-                  <PageTitle>All Components</PageTitle>
-               </TitleGroup>
+                  </div>
+                  <h1 className={pageTitle}>All Components</h1>
+               </div>
 
-               <StatsRow>
-                  <StatChip>
-                     <i className="fa-solid fa-layer-group"></i>
+               <div className={statsRow}>
+                  <div className={statChip}>
+                     <Layers size={11} className="text-[#2563eb]" />
                      {categories.length} categories
-                  </StatChip>
-                  <StatChip>
-                     <i className="fa-solid fa-cube"></i>
+                  </div>
+                  <div className={statChip}>
+                     <Box size={11} className="text-[#2563eb]" />
                      {totalVariants} variants
-                  </StatChip>
-                  <StatChip>
-                     <i className="fa-solid fa-star"></i>
+                  </div>
+                  <div className={statChip}>
+                     <Star size={11} className="text-[#2563eb]" />
                      100% free
-                  </StatChip>
-               </StatsRow>
-            </HeaderTop>
+                  </div>
+               </div>
+            </div>
 
-            <PageDescription>
+            <p className={pageDesc}>
                Browse every production-ready section variant. Click any card to
                open the live editor — customize colors, text, and layout, then
                copy the generated code directly into your Shopify store.
-            </PageDescription>
-         </PageHeader>
+            </p>
+         </header>
 
+         {/* ── Empty state ── */}
          {categories.length === 0 && (
-            <EmptyState>
-               <i className="fa-solid fa-box-open"></i>
-               <p>
+            <div className={emptyState}>
+               <PackageOpen size={36} className="opacity-25 mx-auto" />
+               <p className={emptyText}>
                   No components found in the registry.
                   <br />
                   Add a category to get started.
                </p>
-            </EmptyState>
+            </div>
          )}
 
+         {/* ── Category sections ── */}
          {categories.map((category, index) => (
-            <CategorySection key={category.id} $delay={`${index * 0.07}s`}>
-               <SectionHeading>
-                  <SectionTitle>
-                     <i className="fa-solid fa-folder"></i>
+            <section
+               key={category.id}
+               className={categorySection}
+               style={{ animationDelay: `${index * 0.07}s` }}
+            >
+               <div className={sectionHeading}>
+                  <h2 className={sectionTitle}>
+                     <Folder size={15} className="text-[#2563eb] opacity-75" />
                      {category.title}
-                     <SectionBadge>
+                     <span className={sectionBadge}>
                         {category.variants.length}{" "}
                         {category.variants.length === 1
                            ? "variant"
                            : "variants"}
-                     </SectionBadge>
-                  </SectionTitle>
+                     </span>
+                  </h2>
 
-                  <ViewAllBtn
+                  <button
+                     className={viewAllBtn}
                      onClick={() => navigate(`/components/${category.slug}`)}
                   >
                      View all
-                     <i className="fa-solid fa-arrow-right"></i>
-                  </ViewAllBtn>
-               </SectionHeading>
+                     <ArrowRight
+                        size={11}
+                        className="transition-transform duration-150 group-hover:translate-x-[2px]"
+                     />
+                  </button>
+               </div>
 
-               <SectionDivider />
+               <div className={sectionDivider} />
 
                <VariantsGrid category={category} />
-            </CategorySection>
+            </section>
          ))}
       </>
    );

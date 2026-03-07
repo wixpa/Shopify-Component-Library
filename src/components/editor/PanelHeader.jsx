@@ -1,68 +1,47 @@
-import styled from "styled-components";
+// ── Tailwind Classes ───────────────────────────────────────────
 
-// ── Styled ─────────────────────────────────────────────────────
+const wrap = [
+   "px-4 pt-4 pb-[14px]",
+   "border-b border-[#f3f4f6] flex-shrink-0",
+].join(" ");
 
-const Wrap = styled.div`
-   padding: 16px 16px 14px;
-   border-bottom: 1px solid #f3f4f6;
-   flex-shrink: 0;
-`;
+const titleRow = ["flex items-start justify-between gap-2 mb-[6px]"].join(" ");
 
-const TitleRow = styled.div`
-   display: flex;
-   align-items: flex-start;
-   justify-content: space-between;
-   gap: 8px;
-   margin-bottom: 6px;
-`;
+const titleCls = [
+   "text-[1rem] font-bold text-[#111827]",
+   "font-[var(--inter-font)] tracking-[-0.01em] leading-[1.3] m-0",
+].join(" ");
 
-const Title = styled.h2`
-   font-size: 1rem;
-   font-weight: 700;
-   color: #111827;
-   font-family: var(--inter-font);
-   letter-spacing: -0.01em;
-   line-height: 1.3;
-   margin: 0;
-`;
+const badge = [
+   "text-[0.65rem] font-bold",
+   "bg-[#eff6ff] text-[#2563eb]",
+   "px-[9px] py-[3px] rounded-full",
+   "font-[var(--inter-font)] whitespace-nowrap flex-shrink-0",
+   "mt-[2px] border border-[#bfdbfe]",
+].join(" ");
 
-const Badge = styled.span`
-   font-size: 0.65rem;
-   font-weight: 700;
-   background: #eff6ff;
-   color: #2563eb;
-   padding: 3px 9px;
-   border-radius: 999px;
-   font-family: var(--inter-font);
-   white-space: nowrap;
-   flex-shrink: 0;
-   margin-top: 2px;
-   border: 1px solid #bfdbfe;
-`;
-
-const Desc = styled.p`
-   font-size: 0.78rem;
-   color: #6b7280;
-   line-height: 1.5;
-   font-family: var(--inter-font);
-   margin: 0;
-`;
+const desc = [
+   "text-[0.78rem] text-[#6b7280] leading-[1.5]",
+   "font-[var(--inter-font)] m-0",
+].join(" ");
 
 // ── Util ───────────────────────────────────────────────────────
 
 const capitalize = (s) =>
    s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, " ") : "";
 
-// ── Component ─────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────
 
 const PanelHeader = ({ title, description, sectionLabel }) => (
-   <Wrap>
-      <TitleRow>
-         <Title>{title}</Title>
-         {sectionLabel && <Badge>{capitalize(sectionLabel)}</Badge>}
-      </TitleRow>
-      {description && <Desc>{description}</Desc>}
-   </Wrap>
+   <div className={wrap}>
+      <div className={titleRow}>
+         <h2 className={titleCls}>{title}</h2>
+         {sectionLabel && (
+            <span className={badge}>{capitalize(sectionLabel)}</span>
+         )}
+      </div>
+      {description && <p className={desc}>{description}</p>}
+   </div>
 );
 
 export default PanelHeader;

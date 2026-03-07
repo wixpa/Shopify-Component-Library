@@ -230,3 +230,111 @@ const ProductCardsV3 = ({ config = {} }) => {
 };
 
 export default ProductCardsV3;
+
+// ── Code Generator ────────────────────────────────────────────────────────────
+export const getProductCardsV3Code = (c = {}) => {
+   const bgColor = c.bgColor || "#0f172a";
+   const cardBg = c.cardBg || "#1e293b";
+   const titleColor = c.titleColor || "#ffffff";
+   const priceColor = c.priceColor || "#10b981";
+   const btnBg = c.btnBg || "#10b981";
+   const btnColor = c.btnColor || "#ffffff";
+   const btnText = c.btnText || "Shop Now";
+   const sectionTitle = c.sectionTitle || "Best Sellers";
+   const titleTextColor = c.titleTextColor || "#ffffff";
+
+   return `<!-- Product Cards V3 — Bold | Shopify Bazzar -->
+<style>
+  .pc3-section {
+    background: ${bgColor};
+    padding: 4rem 2rem;
+    font-family: sans-serif;
+    box-sizing: border-box;
+  }
+  .pc3-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+  .pc3-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: ${titleTextColor};
+    margin: 0;
+  }
+  .pc3-view-all {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: ${priceColor};
+    text-decoration: none;
+  }
+  .pc3-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+  }
+  .pc3-card {
+    background: ${cardBg};
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .pc3-card:hover { transform: translateY(-3px); }
+  .pc3-img-wrap { aspect-ratio: 1; overflow: hidden; }
+  .pc3-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s;
+  }
+  .pc3-card:hover .pc3-img { transform: scale(1.05); }
+  .pc3-body { padding: 1rem; }
+  .pc3-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: ${titleColor};
+    margin: 0 0 0.4rem;
+  }
+  .pc3-price {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: ${priceColor};
+    margin: 0 0 0.75rem;
+  }
+  .pc3-btn {
+    width: 100%;
+    background: ${btnBg};
+    color: ${btnColor};
+    border: none;
+    padding: 0.6rem;
+    border-radius: 7px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .pc3-btn:hover { opacity: 0.85; }
+</style>
+
+<section class="pc3-section">
+  <div class="pc3-header">
+    <h2 class="pc3-title">${sectionTitle}</h2>
+    <a href="{{ routes.collections_url }}" class="pc3-view-all">View all →</a>
+  </div>
+  <div class="pc3-grid">
+    {%- for product in collections.frontpage.products limit: 5 -%}
+    <div class="pc3-card">
+      <div class="pc3-img-wrap">
+        <img class="pc3-img" src="{{ product.featured_image | img_url: '400x400' }}" alt="{{ product.title }}">
+      </div>
+      <div class="pc3-body">
+        <p class="pc3-name">{{ product.title }}</p>
+        <p class="pc3-price">{{ product.price | money }}</p>
+        <button class="pc3-btn" onclick="window.location='{{ product.url }}'">${btnText}</button>
+      </div>
+    </div>
+    {%- endfor -%}
+  </div>
+</section>`;
+};

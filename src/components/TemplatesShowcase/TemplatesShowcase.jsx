@@ -1,491 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import styled, { keyframes } from "styled-components";
+import { Layers, ArrowRight, Clock, Star, Zap, Eye } from "lucide-react";
 
-// ── Animations ─────────────────────────────────────────────────
-
-const fadeUp = keyframes`
-    from { opacity: 0; transform: translateY(22px); }
-    to   { opacity: 1; transform: translateY(0);    }
-`;
-
-const shimmer = keyframes`
-    0%   { background-position: -400px 0; }
-    100% { background-position:  400px 0; }
-`;
-
-// ── Layout ─────────────────────────────────────────────────────
-
-const Section = styled.section`
-   background: var(--color-bg-light, #f9fafb);
-   padding: 6rem 0;
-
-   @media (min-width: 1024px) {
-      padding: 8rem 0;
-   }
-`;
-
-const Container = styled.div`
-   max-width: var(--container-max-width);
-   margin: 0 auto;
-   padding: 0 var(--container-padding-x, 1.5rem);
-`;
-
-// ── Section Header ─────────────────────────────────────────────
-
-const SectionHeader = styled.header`
-   text-align: center;
-   margin-bottom: 4rem;
-`;
-
-const SectionEyebrow = styled.div`
-   display: inline-flex;
-   align-items: center;
-   gap: 0.5rem;
-   background: rgba(124, 58, 237, 0.07);
-   border: 1px solid rgba(124, 58, 237, 0.15);
-   border-radius: var(--radius-full);
-   padding: 0.3rem 0.9rem;
-   font-size: 0.75rem;
-   font-weight: 700;
-   color: var(--color-primary-purple);
-   text-transform: uppercase;
-   letter-spacing: 0.08em;
-   font-family: var(--inter-font);
-   margin-bottom: 1.25rem;
-
-   i {
-      font-size: 0.7rem;
-   }
-`;
-
-const SectionTitle = styled.h2`
-   font-size: clamp(1.9rem, 3.5vw, 2.75rem);
-   font-weight: 800;
-   color: var(--color-primary-dark);
-   margin-bottom: 1rem;
-   letter-spacing: -0.03em;
-   line-height: 1.1;
-   font-family: var(--inter-font);
-`;
-
-const Highlight = styled.span`
-   color: var(--color-primary-purple);
-   position: relative;
-   display: inline-block;
-   white-space: nowrap;
-
-   &::after {
-      content: "";
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background: var(--color-primary-purple);
-      border-radius: 2px;
-      opacity: 0.35;
-   }
-`;
-
-const SectionSubtitle = styled.p`
-   color: var(--color-text-secondary);
-   font-size: 1.05rem;
-   line-height: 1.7;
-   max-width: 560px;
-   margin: 0 auto;
-   font-family: var(--inter-font);
-`;
-
-// ── Grid ───────────────────────────────────────────────────────
-
-const Grid = styled.div`
-   display: grid;
-   grid-template-columns: 1fr;
-   gap: 2rem;
-   margin-bottom: 3.5rem;
-
-   @media (min-width: 768px) {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 2.5rem;
-   }
-
-   @media (min-width: 1024px) {
-      grid-template-columns: repeat(3, 1fr);
-   }
-`;
-
-// ── Card ───────────────────────────────────────────────────────
-
-const Card = styled.article`
-   display: flex;
-   flex-direction: column;
-   background: #ffffff;
-   border: 1px solid var(--color-border);
-   border-radius: 14px;
-   overflow: hidden;
-   opacity: 0;
-   transform: translateY(22px);
-   transition:
-      opacity 0.5s ease ${({ $delay }) => $delay}s,
-      transform 0.5s ease ${({ $delay }) => $delay}s,
-      box-shadow 0.22s ease,
-      border-color 0.22s ease;
-
-   &.visible {
-      opacity: 1;
-      transform: translateY(0);
-   }
-
-   &:hover {
-      box-shadow: 0 16px 48px rgba(15, 23, 42, 0.1);
-      border-color: var(--color-border-hover);
-   }
-
-   &:hover .template-img {
-      transform: scale(1.03);
-   }
-`;
-
-// ── Frame ──────────────────────────────────────────────────────
-
-const CardFrame = styled.div`
-   position: relative;
-   aspect-ratio: 16 / 10;
-   overflow: hidden;
-   background: ${({ $bg }) => $bg || "var(--color-bg-light)"};
-   cursor: pointer;
-   flex-shrink: 0;
-`;
-
-const CardImg = styled.img`
-   width: 100%;
-   height: 100%;
-   object-fit: cover;
-   object-position: top center;
-   display: block;
-   transition: transform 0.4s ease;
-`;
-
-// Skeleton shimmer for image loading
-const ImgSkeleton = styled.div`
-   position: absolute;
-   inset: 0;
-   background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
-   background-size: 400px 100%;
-   animation: ${shimmer} 1.4s ease infinite;
-`;
-
-// Badge overlaid on image
-const FrameBadge = styled.div`
-   position: absolute;
-   top: 10px;
-   left: 10px;
-   display: inline-flex;
-   align-items: center;
-   gap: 5px;
-   font-size: 0.65rem;
-   font-weight: 700;
-   text-transform: uppercase;
-   letter-spacing: 0.07em;
-   padding: 3px 9px;
-   border-radius: 999px;
-   font-family: var(--inter-font);
-   z-index: 2;
-   backdrop-filter: blur(6px);
-   -webkit-backdrop-filter: blur(6px);
-   background: ${({ $free, $soon }) =>
-      $soon
-         ? "rgba(234,88,12,0.88)"
-         : $free
-           ? "rgba(22,163,74,0.88)"
-           : "rgba(15,23,42,0.82)"};
-   color: #ffffff;
-
-   i {
-      font-size: 0.58rem;
-   }
-`;
-
-// Preview overlay on hover
-const FrameOverlay = styled.div`
-   position: absolute;
-   inset: 0;
-   background: rgba(15, 23, 42, 0.45);
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   opacity: 0;
-   transition: opacity 0.22s ease;
-   z-index: 3;
-
-   ${CardFrame}:hover & {
-      opacity: 1;
-   }
-`;
-
-const OverlayBtn = styled.button`
-   display: inline-flex;
-   align-items: center;
-   gap: 0.5rem;
-   background: #ffffff;
-   color: var(--color-primary-dark);
-   border: none;
-   border-radius: 8px;
-   padding: 0.55rem 1.1rem;
-   font-size: 0.8rem;
-   font-weight: 700;
-   font-family: var(--inter-font);
-   cursor: pointer;
-   transition: transform 0.15s ease;
-
-   i {
-      font-size: 0.72rem;
-   }
-
-   &:hover {
-      transform: scale(1.04);
-   }
-`;
-
-// ── Card Body ──────────────────────────────────────────────────
-
-const CardBody = styled.div`
-   padding: 1.1rem 1.25rem 1.4rem;
-   display: flex;
-   flex-direction: column;
-   gap: 0.5rem;
-   flex: 1;
-`;
-
-const CardTopRow = styled.div`
-   display: flex;
-   align-items: flex-start;
-   justify-content: space-between;
-   gap: 0.75rem;
-`;
-
-const CardTitle = styled.h3`
-   font-size: 0.98rem;
-   font-weight: 700;
-   color: var(--color-text-main);
-   font-family: var(--inter-font);
-   letter-spacing: -0.01em;
-   line-height: 1.3;
-   flex: 1;
-   min-width: 0;
-`;
-
-const PriceGroup = styled.div`
-   display: flex;
-   align-items: center;
-   gap: 0.4rem;
-   flex-shrink: 0;
-   font-family: var(--inter-font);
-`;
-
-const PriceFree = styled.span`
-   font-size: 0.78rem;
-   font-weight: 800;
-   color: #16a34a;
-   background: rgba(22, 163, 74, 0.08);
-   border-radius: 999px;
-   padding: 2px 9px;
-   text-transform: uppercase;
-   letter-spacing: 0.06em;
-`;
-
-const PriceCurrent = styled.span`
-   font-size: 0.88rem;
-   font-weight: 800;
-   color: var(--color-primary-blue);
-`;
-
-const PriceOld = styled.span`
-   font-size: 0.75rem;
-   font-weight: 500;
-   color: var(--color-text-secondary);
-   text-decoration: line-through;
-`;
-
-const PriceSoon = styled.span`
-   font-size: 0.72rem;
-   font-weight: 700;
-   color: #ea580c;
-   background: rgba(234, 88, 12, 0.08);
-   border-radius: 999px;
-   padding: 2px 9px;
-   text-transform: uppercase;
-   letter-spacing: 0.06em;
-`;
-
-const CardDesc = styled.p`
-   font-size: 0.8rem;
-   color: var(--color-text-secondary);
-   line-height: 1.65;
-   font-family: var(--inter-font);
-   margin: 0;
-`;
-
-// Tags row
-const TagsRow = styled.div`
-   display: flex;
-   flex-wrap: wrap;
-   gap: 0.4rem;
-   margin-top: 0.25rem;
-`;
-
-const Tag = styled.span`
-   font-size: 0.65rem;
-   font-weight: 600;
-   background: var(--color-bg-light);
-   border: 1px solid var(--color-border);
-   color: var(--color-text-secondary);
-   border-radius: 5px;
-   padding: 2px 7px;
-   font-family: var(--inter-font);
-`;
-
-// ── Card Footer ────────────────────────────────────────────────
-
-const CardFooter = styled.div`
-   padding: 0.75rem 1.25rem;
-   border-top: 1px solid var(--color-border);
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   gap: 0.75rem;
-   background: var(--color-bg-light, #f9fafb);
-`;
-
-const CardCtaBtn = styled.button`
-   display: inline-flex;
-   align-items: center;
-   gap: 0.45rem;
-   font-size: 0.78rem;
-   font-weight: 600;
-   font-family: var(--inter-font);
-   border-radius: 7px;
-   border: 1px solid;
-   padding: 0.42rem 0.85rem;
-   cursor: ${({ $soon }) => ($soon ? "default" : "pointer")};
-   transition:
-      background 0.14s ease,
-      transform 0.12s ease;
-   pointer-events: ${({ $soon }) => ($soon ? "none" : "auto")};
-
-   background: ${({ $soon }) =>
-      $soon ? "var(--color-bg-light)" : "var(--color-primary-dark)"};
-   border-color: ${({ $soon }) =>
-      $soon ? "var(--color-border)" : "var(--color-primary-dark)"};
-   color: ${({ $soon }) => ($soon ? "var(--color-text-secondary)" : "#ffffff")};
-
-   i {
-      font-size: 0.68rem;
-   }
-
-   &:hover {
-      background: ${({ $soon }) => ($soon ? "" : "#1e293b")};
-      transform: ${({ $soon }) => ($soon ? "none" : "translateY(-1px)")};
-   }
-`;
-
-const LiveDot = styled.span`
-   width: 6px;
-   height: 6px;
-   border-radius: 50%;
-   background: #22c55e;
-   flex-shrink: 0;
-   animation: pulse 2s ease infinite;
-
-   @keyframes pulse {
-      0%,
-      100% {
-         box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
-      }
-      50% {
-         box-shadow: 0 0 0 5px rgba(34, 197, 94, 0);
-      }
-   }
-`;
-
-const CardStatus = styled.div`
-   display: flex;
-   align-items: center;
-   gap: 0.35rem;
-   font-size: 0.7rem;
-   font-weight: 600;
-   color: ${({ $soon }) => ($soon ? "#ea580c" : "#16a34a")};
-   font-family: var(--inter-font);
-
-   i {
-      font-size: 0.62rem;
-   }
-`;
-
-// ── Section Footer ─────────────────────────────────────────────
-
-const FooterAction = styled.div`
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   gap: 0.85rem;
-`;
-
-const BtnBrowse = styled.button`
-   display: inline-flex;
-   align-items: center;
-   gap: 0.55rem;
-   background: var(--color-primary-purple);
-   color: #ffffff;
-   padding: 0.82rem 2rem;
-   border-radius: var(--radius-md);
-   border: 1px solid var(--color-primary-purple);
-   font-weight: 600;
-   font-size: 0.92rem;
-   font-family: var(--inter-font);
-   cursor: pointer;
-   transition:
-      background 0.15s ease,
-      transform 0.12s ease,
-      box-shadow 0.15s ease;
-
-   i {
-      font-size: 0.8rem;
-      transition: transform 0.15s ease;
-   }
-
-   &:hover {
-      background: #6d28d9;
-      border-color: #6d28d9;
-      transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3);
-      i {
-         transform: translateX(2px);
-      }
-   }
-   &:active {
-      transform: translateY(0);
-   }
-`;
-
-const FooterNote = styled.p`
-   font-size: 0.8rem;
-   color: var(--color-text-secondary);
-   font-family: var(--inter-font);
-   text-align: center;
-
-   span {
-      color: var(--color-primary-purple);
-      font-weight: 600;
-      cursor: pointer;
-      &:hover {
-         text-decoration: underline;
-      }
-   }
-`;
-
-// ── Templates Data ─────────────────────────────────────────────
+// ── Templates Data — 3 cards only ─────────────────────────────
 
 const TEMPLATES = [
    {
@@ -530,47 +47,113 @@ const TEMPLATES = [
       tags: ["Shopify", "Beauty", "Skincare"],
       path: null,
    },
-   {
-      id: 4,
-      title: "Electronics & Tech Store",
-      desc: "Dark, high-contrast Shopify theme for electronics retailers. Includes spec tables, comparison sliders, and cart drawers.",
-      image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&q=80&auto=format&fit=crop",
-      alt: "Electronics & Tech Shopify Template",
-      bg: "#f0f9ff",
-      price: null,
-      oldPrice: null,
-      free: false,
-      soon: true,
-      tags: ["Shopify", "Electronics", "Dark"],
-      path: null,
-   },
 ];
 
-// ── Component ─────────────────────────────────────────────────
+// ── Tailwind Classes ───────────────────────────────────────────
+
+const section =
+   "bg-[#f9fafb] border-t border-[#e5e7eb] pt-14 pb-20 lg:pt-16 lg:pb-28";
+const container = "max-w-[1280px] mx-auto px-6";
+
+const sectionHeader = "text-center mb-12";
+const eyebrow =
+   "inline-flex items-center gap-2 bg-[rgba(124,58,237,0.07)] border border-[rgba(124,58,237,0.15)] rounded-full px-[0.9rem] py-[0.3rem] text-[0.75rem] font-bold text-[#7c3aed] uppercase tracking-[0.08em] font-[var(--inter-font)] mb-4";
+const sectionTitle =
+   "text-[clamp(1.9rem,3.5vw,2.75rem)] font-extrabold text-[#0f172a] mb-3 tracking-[-0.03em] leading-[1.1] font-[var(--inter-font)]";
+const sectionSub =
+   "text-[#4b5563] text-[1.05rem] leading-[1.7] max-w-[560px] mx-auto font-[var(--inter-font)]";
+
+// 3-col on lg — one card per type
+const grid =
+   "grid grid-cols-1 gap-7 mb-12 md:grid-cols-3 lg:grid-cols-3 lg:gap-7";
+
+// Card — left purple accent + bg tint on hover. NO shadow, NO transform, NO scale
+const cardBase =
+   "flex flex-col bg-white border border-[#e5e7eb] [border-left-width:3px] [border-left-color:transparent] rounded-2xl overflow-hidden opacity-0 translate-y-[22px] transition-[opacity,transform,border-color,background-color] duration-500 ease-out hover:[border-left-color:#7c3aed] hover:bg-[#fdfbff]";
+
+// Frame
+const frameBase = "relative overflow-hidden flex-shrink-0 aspect-[16/10]";
+const frameImg = "w-full h-full object-cover object-top block";
+
+// Frame badges
+const frameBadgeFree =
+   "absolute top-[10px] left-[10px] z-[2] inline-flex items-center gap-[5px] text-[0.65rem] font-bold uppercase tracking-[0.07em] px-[9px] py-[3px] rounded-full font-[var(--inter-font)] backdrop-blur-md bg-[rgba(22,163,74,0.88)] text-white";
+const frameBadgePrem =
+   "absolute top-[10px] left-[10px] z-[2] inline-flex items-center gap-[5px] text-[0.65rem] font-bold uppercase tracking-[0.07em] px-[9px] py-[3px] rounded-full font-[var(--inter-font)] backdrop-blur-md bg-[rgba(15,23,42,0.82)] text-white";
+const frameBadgeSoon =
+   "absolute top-[10px] left-[10px] z-[2] inline-flex items-center gap-[5px] text-[0.65rem] font-bold uppercase tracking-[0.07em] px-[9px] py-[3px] rounded-full font-[var(--inter-font)] backdrop-blur-md bg-[rgba(234,88,12,0.88)] text-white";
+
+// Hover overlay — opacity only, NO transform on button
+const frameOverlay =
+   "absolute inset-0 bg-[rgba(15,23,42,0.45)] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[3]";
+const overlayBtn =
+   "inline-flex items-center gap-2 bg-white text-[#0f172a] border-none rounded-lg px-[1.1rem] py-[0.55rem] text-[0.8rem] font-bold font-[var(--inter-font)] cursor-pointer transition-colors duration-150 hover:bg-[#f1f5f9]";
+
+// Card body
+const cardBody = "px-5 py-4 flex flex-col gap-[0.5rem] flex-1";
+const cardTopRow = "flex items-start justify-between gap-3";
+const cardTitle =
+   "text-[0.98rem] font-bold text-[#111827] font-[var(--inter-font)] tracking-[-0.01em] leading-[1.3] flex-1 min-w-0";
+
+const priceFree =
+   "text-[0.78rem] font-extrabold text-[#16a34a] bg-[rgba(22,163,74,0.08)] rounded-full px-[9px] py-[2px] uppercase tracking-[0.06em] font-[var(--inter-font)] whitespace-nowrap flex-shrink-0";
+const priceCurrent =
+   "text-[0.88rem] font-extrabold text-[#2563eb] font-[var(--inter-font)] whitespace-nowrap flex-shrink-0";
+const priceOld =
+   "text-[0.75rem] font-medium text-[#6b7280] line-through font-[var(--inter-font)] whitespace-nowrap flex-shrink-0";
+const priceSoon =
+   "text-[0.72rem] font-bold text-[#ea580c] bg-[rgba(234,88,12,0.08)] rounded-full px-[9px] py-[2px] uppercase tracking-[0.06em] font-[var(--inter-font)] whitespace-nowrap flex-shrink-0";
+
+const cardDesc =
+   "text-[0.8rem] text-[#6b7280] leading-[1.65] font-[var(--inter-font)] m-0";
+const tagsRow = "flex flex-wrap gap-[0.4rem] mt-1";
+const tagCls =
+   "text-[0.65rem] font-semibold bg-[#f9fafb] border border-[#e5e7eb] text-[#6b7280] rounded-[5px] px-[7px] py-[2px] font-[var(--inter-font)]";
+
+// Card footer
+const cardFooter =
+   "px-5 py-3 border-t border-[#e5e7eb] flex items-center justify-between gap-3 bg-[#f9fafb]";
+const statusLive =
+   "flex items-center gap-[0.35rem] text-[0.7rem] font-semibold text-[#16a34a] font-[var(--inter-font)]";
+const statusSoon =
+   "flex items-center gap-[0.35rem] text-[0.7rem] font-semibold text-[#ea580c] font-[var(--inter-font)]";
+const liveDot =
+   "w-[6px] h-[6px] rounded-full bg-[#22c55e] flex-shrink-0 animate-[pulse_2s_ease_infinite]";
+
+// CTA buttons — color-only hover, NO transform
+const ctaBtnLive =
+   "inline-flex items-center gap-[0.45rem] text-[0.78rem] font-semibold font-[var(--inter-font)] rounded-[7px] border border-[#0f172a] bg-[#0f172a] text-white px-[0.85rem] py-[0.42rem] cursor-pointer transition-colors duration-150 hover:bg-[#1e293b] hover:border-[#1e293b]";
+const ctaBtnSoon =
+   "inline-flex items-center gap-[0.45rem] text-[0.78rem] font-semibold font-[var(--inter-font)] rounded-[7px] border border-[#e5e7eb] bg-[#f9fafb] text-[#6b7280] px-[0.85rem] py-[0.42rem] cursor-default pointer-events-none";
+
+// Section footer
+const footerAction = "flex flex-col items-center gap-3";
+const btnBrowse =
+   "inline-flex items-center gap-[0.55rem] bg-[#7c3aed] text-white px-8 py-[0.82rem] rounded-lg border border-[#7c3aed] font-semibold text-[0.92rem] font-[var(--inter-font)] cursor-pointer transition-colors duration-150 hover:bg-[#6d28d9] hover:border-[#6d28d9]";
+const footerNote =
+   "text-[0.8rem] text-[#6b7280] font-[var(--inter-font)] text-center";
+
+// ── Component ──────────────────────────────────────────────────
 
 const TemplatesShowcase = () => {
    const cardRefs = useRef([]);
    const navigate = useNavigate();
-
-   // ── Intersection observer ──────────────────────────────
 
    useEffect(() => {
       const observer = new IntersectionObserver(
          (entries) => {
             entries.forEach((entry) => {
                if (entry.isIntersecting) {
-                  entry.target.classList.add("visible");
+                  entry.target.classList.add("!opacity-100", "!translate-y-0");
                   observer.unobserve(entry.target);
                }
             });
          },
          { threshold: 0.08 },
       );
-
       cardRefs.current.forEach((card) => {
          if (card) observer.observe(card);
       });
-
       return () => observer.disconnect();
    }, []);
 
@@ -578,166 +161,172 @@ const TemplatesShowcase = () => {
       if (path) navigate(path);
    };
 
-   // ── Render ─────────────────────────────────────────────
-
    return (
-      <Section>
-         <Container>
-            {/* ── Header ── */}
-            <SectionHeader>
-               <SectionEyebrow>
-                  <i className="fa-solid fa-layer-group"></i>
+      <section className={section}>
+         <div className={container}>
+            {/* ── Section Header ── */}
+            <header className={sectionHeader}>
+               <div className={eyebrow}>
+                  <Layers size={11} />
                   Full Store Templates
-               </SectionEyebrow>
-               <SectionTitle>
+               </div>
+               <h2 className={sectionTitle}>
                   Complete Shopify Stores,{" "}
-                  <Highlight>Ready to Launch</Highlight>
-               </SectionTitle>
-               <SectionSubtitle>
+                  <span className="text-[#7c3aed] relative inline-block whitespace-nowrap after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-full after:h-[3px] after:bg-[#7c3aed] after:rounded-sm after:opacity-35">
+                     Ready to Launch
+                  </span>
+               </h2>
+               <p className={sectionSub}>
                   Full Shopify theme templates assembled from our section
                   library. Pick a template, customize the colors and copy, and
                   go live in one afternoon.
-               </SectionSubtitle>
-            </SectionHeader>
+               </p>
+            </header>
 
             {/* ── Cards Grid ── */}
-            <Grid>
+            <div className={grid}>
                {TEMPLATES.map((tmpl, index) => (
-                  <Card
+                  <article
                      key={tmpl.id}
-                     $delay={(index * 0.1).toFixed(2)}
                      ref={(el) => (cardRefs.current[index] = el)}
+                     className={`${cardBase} group`}
+                     style={{ transitionDelay: `${(index * 0.1).toFixed(2)}s` }}
                      aria-label={tmpl.title}
                   >
-                     {/* Frame */}
-                     <CardFrame
-                        $bg={tmpl.bg}
-                        onClick={() => !tmpl.soon && handleCardNav(tmpl.path)}
+                     {/* ── Frame ── */}
+                     <div
+                        className={frameBase}
                         style={{
+                           background: tmpl.bg,
                            cursor: tmpl.soon ? "default" : "pointer",
                         }}
+                        onClick={() => !tmpl.soon && handleCardNav(tmpl.path)}
                      >
-                        <CardImg
-                           className="template-img"
+                        <img
+                           className={frameImg}
                            src={tmpl.image}
                            alt={tmpl.alt}
                            loading="lazy"
                         />
 
                         {/* Badge */}
-                        <FrameBadge $free={tmpl.free} $soon={tmpl.soon}>
-                           {tmpl.soon ? (
-                              <>
-                                 <i className="fa-solid fa-clock"></i>
-                                 Coming Soon
-                              </>
-                           ) : tmpl.free ? (
-                              <>
-                                 <i className="fa-solid fa-star"></i>
-                                 Free
-                              </>
-                           ) : (
-                              <>
-                                 <i className="fa-solid fa-bolt"></i>
-                                 Premium
-                              </>
-                           )}
-                        </FrameBadge>
+                        {tmpl.soon ? (
+                           <div className={frameBadgeSoon}>
+                              <Clock size={9} /> Coming Soon
+                           </div>
+                        ) : tmpl.free ? (
+                           <div className={frameBadgeFree}>
+                              <Star size={9} /> Free
+                           </div>
+                        ) : (
+                           <div className={frameBadgePrem}>
+                              <Zap size={9} /> Premium
+                           </div>
+                        )}
 
-                        {/* Hover overlay */}
+                        {/* Hover overlay — live cards only */}
                         {!tmpl.soon && (
-                           <FrameOverlay>
-                              <OverlayBtn
+                           <div className={frameOverlay}>
+                              <button
+                                 className={overlayBtn}
                                  onClick={() => handleCardNav(tmpl.path)}
                               >
-                                 <i className="fa-solid fa-eye"></i>
+                                 <Eye size={13} />
                                  Preview Template
-                              </OverlayBtn>
-                           </FrameOverlay>
+                              </button>
+                           </div>
                         )}
-                     </CardFrame>
+                     </div>
 
-                     {/* Body */}
-                     <CardBody>
-                        <CardTopRow>
-                           <CardTitle>{tmpl.title}</CardTitle>
-                           <PriceGroup>
+                     {/* ── Body ── */}
+                     <div className={cardBody}>
+                        <div className={cardTopRow}>
+                           <h3 className={cardTitle}>{tmpl.title}</h3>
+                           <div className="flex items-center gap-[0.4rem] flex-shrink-0">
                               {tmpl.soon ? (
-                                 <PriceSoon>Soon</PriceSoon>
+                                 <span className={priceSoon}>Soon</span>
                               ) : tmpl.free ? (
-                                 <PriceFree>Free</PriceFree>
+                                 <span className={priceFree}>Free</span>
                               ) : (
                                  <>
-                                    <PriceCurrent>{tmpl.price}</PriceCurrent>
-                                    <PriceOld>{tmpl.oldPrice}</PriceOld>
+                                    <span className={priceCurrent}>
+                                       {tmpl.price}
+                                    </span>
+                                    <span className={priceOld}>
+                                       {tmpl.oldPrice}
+                                    </span>
                                  </>
                               )}
-                           </PriceGroup>
-                        </CardTopRow>
+                           </div>
+                        </div>
 
-                        <CardDesc>{tmpl.desc}</CardDesc>
+                        <p className={cardDesc}>{tmpl.desc}</p>
 
-                        <TagsRow>
+                        <div className={tagsRow}>
                            {tmpl.tags.map((t) => (
-                              <Tag key={t}>{t}</Tag>
+                              <span key={t} className={tagCls}>
+                                 {t}
+                              </span>
                            ))}
-                        </TagsRow>
-                     </CardBody>
+                        </div>
+                     </div>
 
-                     {/* Footer */}
-                     <CardFooter>
-                        <CardStatus $soon={tmpl.soon}>
-                           {tmpl.soon ? (
-                              <>
-                                 <i className="fa-solid fa-clock"></i>
-                                 In development
-                              </>
-                           ) : (
-                              <>
-                                 <LiveDot />
-                                 Available now
-                              </>
-                           )}
-                        </CardStatus>
+                     {/* ── Footer ── */}
+                     <div className={cardFooter}>
+                        {tmpl.soon ? (
+                           <div className={statusSoon}>
+                              <Clock size={11} /> In development
+                           </div>
+                        ) : (
+                           <div className={statusLive}>
+                              <span className={liveDot} />
+                              Available now
+                           </div>
+                        )}
 
-                        <CardCtaBtn
-                           $soon={tmpl.soon}
+                        <button
+                           className={tmpl.soon ? ctaBtnSoon : ctaBtnLive}
                            onClick={() =>
                               !tmpl.soon && handleCardNav(tmpl.path)
                            }
                         >
                            {tmpl.soon ? (
                               <>
-                                 <i className="fa-solid fa-clock"></i>
-                                 Notify Me
+                                 <Clock size={11} /> Notify Me
                               </>
                            ) : (
                               <>
-                                 <i className="fa-solid fa-arrow-right"></i>
+                                 <ArrowRight size={11} />{" "}
                                  {tmpl.free ? "Use Template" : "Get Template"}
                               </>
                            )}
-                        </CardCtaBtn>
-                     </CardFooter>
-                  </Card>
+                        </button>
+                     </div>
+                  </article>
                ))}
-            </Grid>
+            </div>
 
             {/* ── Footer CTA ── */}
-            <FooterAction>
-               <BtnBrowse onClick={() => navigate("/templates")}>
+            <div className={footerAction}>
+               <button
+                  className={btnBrowse}
+                  onClick={() => navigate("/templates")}
+               >
                   Browse All Templates
-                  <i className="fa-solid fa-arrow-right"></i>
-               </BtnBrowse>
-               <FooterNote>
+                  <ArrowRight size={14} />
+               </button>
+               <p className={footerNote}>
                   All templates are built entirely from Shopify Bazzar sections.{" "}
-                  <span onClick={() => navigate("/components")}>
+                  <span
+                     className="text-[#7c3aed] font-semibold cursor-pointer hover:underline"
+                     onClick={() => navigate("/components")}
+                  >
                      Explore the component library →
                   </span>
-               </FooterNote>
-            </FooterAction>
-         </Container>
-      </Section>
+               </p>
+            </div>
+         </div>
+      </section>
    );
 };
 

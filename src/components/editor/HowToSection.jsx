@@ -1,102 +1,41 @@
-import styled from "styled-components";
+import { Play } from "lucide-react";
 
-// ── Styled ─────────────────────────────────────────────────────
+// ── Tailwind Classes ───────────────────────────────────────────
 
-const Wrap = styled.div`
-   padding: 16px;
-   border-bottom: 1px solid #f3f4f6;
-`;
+const wrap = "p-4 border-b border-[#f3f4f6]";
 
-const Title = styled.h3`
-   font-size: 0.9rem;
-   font-weight: 700;
-   color: #111827;
-   line-height: 1.35;
-   font-family: var(--inter-font);
-   margin: 0 0 12px 0;
-`;
+const title = [
+   "text-[0.9rem] font-bold text-[#111827] leading-[1.35]",
+   "font-[var(--inter-font)] m-0 mb-3",
+].join(" ");
 
-const WatchBtn = styled.a`
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   gap: 8px;
-   width: 100%;
-   background: #111827;
-   color: #ffffff;
-   padding: 9px 14px;
-   border-radius: 8px;
-   font-size: 0.78rem;
-   font-weight: 600;
-   font-family: var(--inter-font);
-   text-decoration: none;
-   text-align: center;
-   transition: background 0.15s ease;
-   cursor: pointer;
-   margin-bottom: 18px;
-   box-sizing: border-box;
+const watchBtn = [
+   "flex items-center justify-center gap-2 w-full",
+   "bg-[#111827] text-white",
+   "px-[14px] py-[9px] rounded-lg",
+   "text-[0.78rem] font-semibold font-[var(--inter-font)]",
+   "no-underline text-center cursor-pointer mb-[18px] box-border",
+   "transition-colors duration-150",
+   "hover:bg-[#1f2937]",
+   "focus-visible:outline-2 focus-visible:outline-[#3b82f6] focus-visible:outline-offset-2",
+].join(" ");
 
-   i {
-      font-size: 0.72rem;
-      color: #f59e0b;
-   }
+const stepsList = "list-none m-0 p-0 flex flex-col gap-3";
 
-   &:hover {
-      background: #1f2937;
-   }
+const stepItem = "flex items-start gap-[10px]";
 
-   &:focus-visible {
-      outline: 2px solid #3b82f6;
-      outline-offset: 2px;
-   }
-`;
+const numBadge = [
+   "w-[22px] min-w-[22px] h-[22px] rounded-full",
+   "bg-[#f1f5f9] text-[#374151]",
+   "text-[0.7rem] font-bold font-[var(--inter-font)]",
+   "flex items-center justify-center",
+   "mt-[1px] flex-shrink-0",
+].join(" ");
 
-const Steps = styled.ol`
-   list-style: none;
-   margin: 0;
-   padding: 0;
-   display: flex;
-   flex-direction: column;
-   gap: 12px;
-`;
-
-const Step = styled.li`
-   display: flex;
-   align-items: flex-start;
-   gap: 10px;
-`;
-
-const Num = styled.div`
-   width: 22px;
-   min-width: 22px;
-   height: 22px;
-   border-radius: 50%;
-   background: #f1f5f9;
-   color: #374151;
-   font-size: 0.7rem;
-   font-weight: 700;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   font-family: var(--inter-font);
-   margin-top: 1px;
-   flex-shrink: 0;
-`;
-
-const StepTitle = styled.div`
-   font-size: 0.8rem;
-   font-weight: 600;
-   color: #111827;
-   font-family: var(--inter-font);
-   margin-bottom: 2px;
-`;
-
-const StepDesc = styled.div`
-   font-size: 0.73rem;
-   color: #6b7280;
-   font-family: var(--inter-font);
-   line-height: 1.45;
-`;
+const stepTitle =
+   "text-[0.8rem] font-semibold text-[#111827] font-[var(--inter-font)] mb-[2px]";
+const stepDesc =
+   "text-[0.73rem] text-[#6b7280] font-[var(--inter-font)] leading-[1.45]";
 
 // ── Data ───────────────────────────────────────────────────────
 
@@ -123,36 +62,42 @@ const STEPS = [
    },
 ];
 
-// ── Component ─────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────
 
 const HowToSection = () => (
-   <Wrap>
-      {/* Title — full width, above button */}
-      <Title>How to Add to Your Shopify Theme</Title>
+   <div className={wrap}>
+      {/* Title */}
+      <h3 className={title}>How to Add to Your Shopify Theme</h3>
 
-      {/* Watch button — full width row below title */}
-      <WatchBtn
+      {/* Watch tutorial button */}
+      <a
          href="#"
+         className={watchBtn}
          aria-label="Watch tutorial video"
          onClick={(e) => e.preventDefault()}
       >
-         <i className="fa-solid fa-play" aria-hidden="true"></i>
+         <Play
+            size={11}
+            className="text-[#f59e0b] fill-[#f59e0b] flex-shrink-0"
+         />
          Watch Tutorial
-      </WatchBtn>
+      </a>
 
-      {/* Steps list */}
-      <Steps aria-label="Installation steps">
+      {/* Steps */}
+      <ol className={stepsList} aria-label="Installation steps">
          {STEPS.map((step) => (
-            <Step key={step.num}>
-               <Num aria-hidden="true">{step.num}</Num>
-               <div>
-                  <StepTitle>{step.title}</StepTitle>
-                  <StepDesc>{step.desc}</StepDesc>
+            <li key={step.num} className={stepItem}>
+               <div className={numBadge} aria-hidden="true">
+                  {step.num}
                </div>
-            </Step>
+               <div>
+                  <div className={stepTitle}>{step.title}</div>
+                  <div className={stepDesc}>{step.desc}</div>
+               </div>
+            </li>
          ))}
-      </Steps>
-   </Wrap>
+      </ol>
+   </div>
 );
 
 export default HowToSection;

@@ -1,75 +1,27 @@
 import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import styled, { createGlobalStyle } from "styled-components";
+import { ArrowLeft } from "lucide-react";
 import { getVariant } from "../registry/componentRegistry";
 import generateComponentCode from "../components/editor/generateComponentCode";
 import EditorTopBar from "../components/editor/EditorTopBar";
 import EditorCanvas from "../components/editor/EditorCanvas";
 import EditorRightPanel from "../components/editor/EditorRightPanel";
 
-// ── React Flow global CSS reset ────────────────────────────────
+// ── Tailwind Classes ───────────────────────────────────────────
 
-const GlobalStyle = createGlobalStyle`
-    .react-flow__attribution { display: none !important; }
-`;
+const root =
+   "flex flex-col h-screen w-screen overflow-hidden bg-[#f8fafc] font-[var(--inter-font)]";
+const body = "flex flex-1 overflow-hidden";
 
-// ── Layout shell ───────────────────────────────────────────────
+// Not found
+const notFound =
+   "flex-1 flex flex-col items-center justify-center gap-[14px] font-[var(--inter-font)]";
+const notFoundTitle = "text-[1.5rem] font-bold text-[#111827]";
+const notFoundDesc = "text-[#6b7280] text-[0.95rem]";
+const goBackBtn =
+   "inline-flex items-center gap-2 px-6 py-[0.62rem] bg-[#2563eb] text-white border-none rounded-lg text-[0.9rem] font-semibold font-[var(--inter-font)] cursor-pointer transition-colors duration-150 hover:bg-[#1d4ed8]";
 
-const Root = styled.div`
-   display: flex;
-   flex-direction: column;
-   height: 100vh;
-   width: 100vw;
-   overflow: hidden;
-   background: #f8fafc;
-   font-family: var(--inter-font);
-`;
-
-const Body = styled.div`
-   display: flex;
-   flex: 1;
-   overflow: hidden;
-`;
-
-// ── Not Found ──────────────────────────────────────────────────
-
-const NotFound = styled.div`
-   flex: 1;
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   justify-content: center;
-   gap: 14px;
-   font-family: var(--inter-font);
-
-   h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #111827;
-   }
-   p {
-      color: #6b7280;
-      font-size: 0.95rem;
-   }
-`;
-
-const GoBackBtn = styled.button`
-   padding: 10px 24px;
-   background: #2563eb;
-   color: white;
-   border: none;
-   border-radius: 8px;
-   font-size: 0.9rem;
-   font-weight: 600;
-   font-family: var(--inter-font);
-   cursor: pointer;
-   transition: background 0.15s;
-   &:hover {
-      background: #1d4ed8;
-   }
-`;
-
-// ── Page ───────────────────────────────────────────────────────
+// ── Component ──────────────────────────────────────────────────
 
 const VariantEditorPage = () => {
    const { section, variantId } = useParams();
@@ -78,6 +30,7 @@ const VariantEditorPage = () => {
    const variantData = getVariant(section, variantId);
 
    // ── State ──────────────────────────────────────────────────
+
    const [config, setConfig] = useState(() => ({
       ...(variantData?.defaultConfig ?? {}),
    }));
@@ -97,7 +50,6 @@ const VariantEditorPage = () => {
    }, [variantData]);
 
    const handleCopy = useCallback(() => {
-      // Generate actual HTML + CSS + JS with current config baked in
       const code = generateComponentCode(variantId, config);
       navigator.clipboard.writeText(code).then(() => {
          setCopied(true);
@@ -113,29 +65,36 @@ const VariantEditorPage = () => {
 
    if (!variantData) {
       return (
-         <Root>
-            <GlobalStyle />
-            <NotFound>
-               <h2>Component not found</h2>
-               <p>
-                  <strong>
+         <div className={root}>
+            {/* React Flow attribution reset */}
+            <style>{`.react-flow__attribution { display: none !important; }`}</style>
+
+            <div className={notFound}>
+               <h2 className={notFoundTitle}>Component not found</h2>
+               <p className={notFoundDesc}>
+                  <strong className="text-[#111827]">
                      "{section}/{variantId}"
                   </strong>{" "}
                   does not exist.
                </p>
-               <GoBackBtn onClick={() => navigate("/components")}>
-                  ← Back to Components
-               </GoBackBtn>
-            </NotFound>
-         </Root>
+               <button
+                  className={goBackBtn}
+                  onClick={() => navigate("/components")}
+               >
+                  <ArrowLeft size={15} />
+                  Back to Components
+               </button>
+            </div>
+         </div>
       );
    }
 
    // ── Render ─────────────────────────────────────────────────
 
    return (
-      <Root>
-         <GlobalStyle />
+      <div className={root}>
+         {/* React Flow attribution reset */}
+         <style>{`.react-flow__attribution { display: none !important; }`}</style>
 
          {/* Top Bar */}
          <EditorTopBar
@@ -153,7 +112,7 @@ const VariantEditorPage = () => {
          />
 
          {/* Body */}
-         <Body>
+         <div className={body}>
             {/* Canvas */}
             <EditorCanvas
                variantData={variantData}
@@ -174,8 +133,8 @@ const VariantEditorPage = () => {
                openAccordion={openAccordion}
                onToggleAccordion={handleToggleAccordion}
             />
-         </Body>
-      </Root>
+         </div>
+      </div>
    );
 };
 
