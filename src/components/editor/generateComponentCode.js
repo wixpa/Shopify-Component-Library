@@ -23,9 +23,15 @@ import { getFooterV2Code } from "../ui/footer/FooterV2";
 import { getFooterV3Code } from "../ui/footer/FooterV3";
 import { getFooterV4Code } from "../ui/footer/FooterV4";
 import { getFooterV5Code } from "../ui/footer/FooterV5";
+import { getHeaderV1Code } from "../ui/headers/HeaderV1";
+import { getHeaderV2Code } from "../ui/headers/HeaderV2";
 
 const generateComponentCode = (variantId, config) => {
   switch (variantId) {
+    case "header-v1":
+      return getHeaderV1Code(config);
+    case "header-v2":
+      return getHeaderV2Code(config);
     case "hero-v1":
       return getHeroV1Code(config);
     case "hero-v2":
