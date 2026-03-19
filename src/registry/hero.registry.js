@@ -1,4 +1,9 @@
 import { HeroV1, HeroV2, HeroV3 } from "../components/ui/hero";
+import {
+   getHeroV1Code,
+   getHeroV2Code,
+   getHeroV3Code,
+} from "../components/ui/hero"; // ← ADD THIS
 
 const heroRegistry = {
    id: "hero",
@@ -11,7 +16,6 @@ const heroRegistry = {
    description:
       "Full-width hero sections designed to grab attention and drive conversions from the first impression.",
    variants: [
-      // ── Hero V1 — Centered ──────────────────────────────────
       {
          id: "hero-v1",
          name: "Hero — Centered",
@@ -19,6 +23,7 @@ const heroRegistry = {
             "Bold centered hero with badge, headline, subtitle, and dual CTA buttons.",
          tags: ["centered", "badge", "dual cta", "white", "light"],
          component: HeroV1,
+         getCode: getHeroV1Code, // ← ADD THIS
          defaultConfig: {
             bgColor: "#ffffff",
             badge: "✨ New Collection",
@@ -110,7 +115,7 @@ const heroRegistry = {
          ],
       },
 
-      // ── Hero V2 — Dark ──────────────────────────────────────
+      // ── Hero V2 — Dark
       {
          id: "hero-v2",
          name: "Hero — Dark",
@@ -118,6 +123,7 @@ const heroRegistry = {
             "Dark-themed hero with purple glow effect and single bold CTA.",
          tags: ["dark", "glow", "purple", "navy", "single cta"],
          component: HeroV2,
+         getCode: getHeroV2Code, // ← ADD THIS
          defaultConfig: {
             bgColor: "#0f172a",
             badge: "🚀 Launch Ready",
@@ -198,7 +204,7 @@ const heroRegistry = {
          ],
       },
 
-      // ── Hero V3 — With Stats ────────────────────────────────
+      // ── Hero V3 — With Stats
       {
          id: "hero-v3",
          name: "Hero — With Stats",
@@ -206,6 +212,7 @@ const heroRegistry = {
             "Green-toned hero with badge, headline, CTA, and animated stats row.",
          tags: ["stats", "green", "eco", "numbers", "metrics"],
          component: HeroV3,
+         getCode: getHeroV3Code, // ← ADD THIS
          defaultConfig: {
             bgColor: "#f0fdf4",
             badge: "🌿 Eco-friendly designs",

@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
    LayoutGrid,
@@ -41,14 +42,11 @@ const sectionDivider = "w-full h-px bg-[var(--color-sidebar-border)] mb-6";
 const cardsGrid =
    "grid grid-cols-1 gap-5 sm:grid-cols-[repeat(auto-fill,minmax(300px,1fr))]";
 
-// Card — left blue border accent on hover, NO shadow, NO transform
 const cardBase =
    "border border-[var(--color-sidebar-border)] [border-left-width:3px] [border-left-color:transparent] rounded-xl overflow-hidden bg-[var(--color-bg-white)] flex flex-col cursor-pointer transition-[border-color,background-color] duration-200 ease-out hover:[border-left-color:#2563eb] hover:bg-[#fafbff]";
 
 const cardPreview =
    "h-[220px] bg-[var(--color-bg-light,#f9fafb)] flex items-start justify-center border-b border-[var(--color-sidebar-border)] overflow-hidden pointer-events-none relative";
-const previewScaler =
-   "absolute top-0 left-1/2 -translate-x-1/2 w-[238%] scale-[0.42] origin-top pointer-events-none";
 const previewOverlay =
    "absolute inset-0 bg-[rgba(37,99,235,0.04)] opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-[1] pointer-events-none";
 
@@ -65,6 +63,71 @@ const customizeBtn =
 const emptyState =
    "text-center py-16 px-8 text-[var(--color-nav-text-secondary)] font-[var(--inter-font)]";
 const emptyText = "text-[0.88rem] leading-[1.7] mt-4";
+
+// ── Preview iframe srcdoc builder ─────────────────────────────
+
+const buildPreviewSrcdoc = (htmlString) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; }
+  </style>
+</head>
+<body>${htmlString}</body>
+</html>`;
+
+// ── Card Preview with iframe ──────────────────────────────────
+// Renders getCode() output inside a scaled-down iframe.
+// The iframe is 238% wide then scaled to 42% → gives a desktop-width preview
+// compressed into the 220px tall card preview area.
+
+const CardPreviewIframe = ({ variant }) => {
+   const iframeRef = useRef(null);
+
+   // Only build srcdoc if getCode exists — graceful fallback otherwise
+   if (typeof variant.getCode !== "function") {
+      return (
+         <div className={cardPreview}>
+            <div className="absolute inset-0 flex items-center justify-center">
+               <span className="text-[0.72rem] text-[#94a3b8] font-[var(--inter-font)]">
+                  No preview available
+               </span>
+            </div>
+         </div>
+      );
+   }
+
+   const srcdoc = buildPreviewSrcdoc(variant.getCode(variant.defaultConfig));
+
+   return (
+      <div className={cardPreview}>
+         <iframe
+            ref={iframeRef}
+            srcDoc={srcdoc}
+            title={variant.name}
+            style={{
+               position: "absolute",
+               top: 0,
+               left: "50%",
+               width: "238%",
+               height: "520px", // tall enough to show full component
+               border: "none",
+               transform: "translateX(-50%) scale(0.42)",
+               transformOrigin: "top center",
+               pointerEvents: "none",
+            }}
+            sandbox="allow-scripts"
+            loading="lazy"
+         />
+         <div className={previewOverlay} />
+      </div>
+   );
+};
 
 // ══════════════════════════════════════════════════════════════
 // ── Exported VariantsGrid ─────────────────────────────────────
@@ -88,59 +151,49 @@ export const VariantsGrid = ({ category }) => {
 
    return (
       <div className={cardsGrid}>
-         {category.variants.map((variant) => {
-            const LiveComponent = variant.component;
-            return (
-               <div
-                  key={variant.id}
-                  className={`${cardBase} group`}
-                  onClick={() =>
-                     navigate(`/components/${category.slug}/${variant.id}`)
-                  }
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                     if (e.key === "Enter")
+         {category.variants.map((variant) => (
+            <div
+               key={variant.id}
+               className={`${cardBase} group`}
+               onClick={() =>
+                  navigate(`/components/${category.slug}/${variant.id}`)
+               }
+               role="button"
+               tabIndex={0}
+               onKeyDown={(e) => {
+                  if (e.key === "Enter")
+                     navigate(`/components/${category.slug}/${variant.id}`);
+               }}
+               aria-label={`Open ${variant.name} in live editor`}
+            >
+               {/* ── Preview — iframe renders getCode() output ── */}
+               <CardPreviewIframe variant={variant} />
+
+               {/* ── Footer ── */}
+               <div className={cardFooter}>
+                  <div className={cardNameWrap}>
+                     <span className={cardName} title={variant.name}>
+                        {variant.name}
+                     </span>
+                     <span className={cardSlug}>
+                        {category.slug}/{variant.id}
+                     </span>
+                  </div>
+
+                  <button
+                     className={customizeBtn}
+                     onClick={(e) => {
+                        e.stopPropagation();
                         navigate(`/components/${category.slug}/${variant.id}`);
-                  }}
-                  aria-label={`Open ${variant.name} in live editor`}
-               >
-                  {/* Preview */}
-                  <div className={cardPreview}>
-                     <div className={previewScaler}>
-                        <LiveComponent config={variant.defaultConfig} />
-                     </div>
-                     <div className={previewOverlay} />
-                  </div>
-
-                  {/* Footer */}
-                  <div className={cardFooter}>
-                     <div className={cardNameWrap}>
-                        <span className={cardName} title={variant.name}>
-                           {variant.name}
-                        </span>
-                        <span className={cardSlug}>
-                           {category.slug}/{variant.id}
-                        </span>
-                     </div>
-
-                     <button
-                        className={customizeBtn}
-                        onClick={(e) => {
-                           e.stopPropagation();
-                           navigate(
-                              `/components/${category.slug}/${variant.id}`,
-                           );
-                        }}
-                        aria-label={`Open ${variant.name} editor`}
-                     >
-                        <Wand2 size={10} />
-                        Open Editor
-                     </button>
-                  </div>
+                     }}
+                     aria-label={`Open ${variant.name} editor`}
+                  >
+                     <Wand2 size={10} />
+                     Open Editor
+                  </button>
                </div>
-            );
-         })}
+            </div>
+         ))}
       </div>
    );
 };
@@ -209,7 +262,7 @@ const ComponentsPage = () => {
          {/* ── Category sections ── */}
          {categories.map((category, index) => (
             <section
-               key={category.id}
+               key={category.slug}
                className={categorySection}
                style={{ animationDelay: `${index * 0.07}s` }}
             >

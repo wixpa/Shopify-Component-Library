@@ -1,130 +1,19 @@
-const HeroV1 = ({ config = {} }) => {
-   const {
-      bgColor = "#ffffff",
-      badge = "✨ New Collection",
-      badgeBg = "#dbeafe",
-      badgeColor = "#1d4ed8",
-      title = "Build Your Shopify Store Faster",
-      titleColor = "#0f172a",
-      titleSize = "3rem",
-      subtitle = "Beautiful, ready-to-use components for your storefront.",
-      subtitleColor = "#4b5563",
-      btnText = "Browse Components",
-      btn2Text = "View Templates",
-      btnBg = "#2563eb",
-   } = config;
+// Named export — used by generateComponentCode.js and hero.registry.js
+export function getHeroV1Code(config = {}) {
+  const bgColor = config.bgColor || "#ffffff";
+  const badge = config.badge || "✨ New Collection";
+  const badgeBg = config.badgeBg || "#dbeafe";
+  const badgeColor = config.badgeColor || "#1d4ed8";
+  const title = config.title || "Build Your Shopify Store Faster";
+  const titleColor = config.titleColor || "#0f172a";
+  const titleSize = config.titleSize || "3rem";
+  const subtitle = config.subtitle || "Beautiful, ready-to-use components for your storefront.";
+  const subtitleColor = config.subtitleColor || "#4b5563";
+  const btnText = config.btnText || "Browse Components";
+  const btn2Text = config.btn2Text || "View Templates";
+  const btnBg = config.btnBg || "#2563eb";
 
-   return (
-      <section
-         style={{
-            background: bgColor,
-            padding: "5rem 2rem",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            fontFamily: "sans-serif",
-         }}
-      >
-         {badge && (
-            <span
-               style={{
-                  background: badgeBg,
-                  color: badgeColor,
-                  padding: "0.3rem 0.9rem",
-                  borderRadius: "999px",
-                  fontSize: "0.8rem",
-                  fontWeight: 600,
-                  marginBottom: "1.25rem",
-                  display: "inline-block",
-               }}
-            >
-               {badge}
-            </span>
-         )}
-         <h1
-            style={{
-               fontSize: titleSize,
-               color: titleColor,
-               fontWeight: 800,
-               margin: "0 0 1rem",
-               lineHeight: 1.15,
-               maxWidth: "700px",
-            }}
-         >
-            {title}
-         </h1>
-         <p
-            style={{
-               fontSize: "1.1rem",
-               color: subtitleColor,
-               maxWidth: "560px",
-               margin: "0 0 2rem",
-               lineHeight: 1.6,
-            }}
-         >
-            {subtitle}
-         </p>
-         <div
-            style={{
-               display: "flex",
-               gap: "0.875rem",
-               flexWrap: "wrap",
-               justifyContent: "center",
-            }}
-         >
-            <button
-               style={{
-                  background: btnBg,
-                  color: "#fff",
-                  border: "none",
-                  padding: "0.75rem 1.75rem",
-                  borderRadius: "8px",
-                  fontSize: "0.95rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-               }}
-            >
-               {btnText}
-            </button>
-            <button
-               style={{
-                  background: "transparent",
-                  color: titleColor,
-                  border: `1.5px solid ${titleColor}40`,
-                  padding: "0.75rem 1.75rem",
-                  borderRadius: "8px",
-                  fontSize: "0.95rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-               }}
-            >
-               {btn2Text}
-            </button>
-         </div>
-      </section>
-   );
-};
-
-export default HeroV1;
-
-// ── Code Generator ────────────────────────────────────────────────────────────
-export const getHeroV1Code = (c = {}) => {
-   const bgColor = c.bgColor || "#ffffff";
-   const badge = c.badge || "✨ New Collection";
-   const badgeBg = c.badgeBg || "#dbeafe";
-   const badgeColor = c.badgeColor || "#1d4ed8";
-   const title = c.title || "Build Your Shopify Store Faster";
-   const titleColor = c.titleColor || "#0f172a";
-   const titleSize = c.titleSize || "3rem";
-   const subtitle =
-      c.subtitle || "Beautiful, ready-to-use components for your storefront.";
-   const subtitleColor = c.subtitleColor || "#4b5563";
-   const btnText = c.btnText || "Browse Components";
-   const btn2Text = c.btn2Text || "View Templates";
-   const btnBg = c.btnBg || "#2563eb";
-
-   return `<!-- Hero V1 — Centered | Shopify Bazzar -->
+  return `<!-- Hero V1 — Centered | Shopify Bazzar -->
 <style>
   .hero1 {
     background: ${bgColor};
@@ -206,4 +95,9 @@ export const getHeroV1Code = (c = {}) => {
     <button class="hero1-btn-secondary">${btn2Text}</button>
   </div>
 </section>`;
-};
+}
+
+// Default export — returns null because editor renders via getCode() → iframe
+export default function HeroV1({ config }) {
+  return null;
+}

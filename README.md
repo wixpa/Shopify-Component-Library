@@ -1,17 +1,41 @@
-# Shopify Bazzar
+# Shopify Bazzar — Component Conversion Prompt
 
-A clean, modern, and fully responsive React component library built from the ground up using **React (Vite)**, **Tailwind CSS**, and **React Router Dom**. Featuring beautiful Shopify-focused UI components, RTL language support, elegant dark mode readiness, and pixel-perfect attention to detail.
-
----
-
-### Adding a New Component Variant
-
-Follow this guide every time you want to convert an existing HTML/CSS component
-into a library-compatible React variant.
+Use this prompt every time you want to convert a vanilla HTML/CSS/JS component
+into a fully working Shopify Bazzar library variant.
 
 ---
 
-#### Prompt: Converting HTML, CSS, JS code into JSX & step by step guide to integrate it..!
+## How This Library Works (Read First)
+
+The library has ONE rendering pipeline for everything — card previews,
+editor canvas, and Copy Code output:
+
+```
+config (from controls)
+     ↓
+getCode(config)           ← returns a pure HTML/CSS/JS string
+     ↓
+injected into <iframe srcdoc="...">   ← live preview (card + editor)
+     ↓
+same string copied on "Copy Code" button
+```
+
+**This means:**
+- `getCode(config)` is the ONLY source of truth
+- The React default export component ALWAYS returns `null` — it is never rendered visually
+- Card previews on the Components page use `variant.getCode(variant.defaultConfig)` → iframe
+- The editor canvas uses `variant.getCode(config)` → iframe
+- The Copy Code button outputs the same string
+
+---
+
+## The Prompt to Use
+
+Copy everything between the triple-dashes below and paste it into any AI,
+then fill in the blanks at the bottom.
+
+---
+
 ```
 I am building a React component library called Shopify Bazzar.
 The editor renders component variants inside an <iframe> using a
@@ -21,6 +45,9 @@ getCode(config) function — NOT as live React. This means:
 - The COPY CODE button uses: getCode(config) → pure HTML/CSS/JS string
 - The React JSX component file is ONLY used as a wrapper to call getCode()
   and render the iframe-ready output. It is NOT rendered directly anymore.
+- The CARD PREVIEW on the components page ALSO uses:
+  variant.getCode(variant.defaultConfig) → injected into iframe srcdoc
+  This means if getCode() is missing or broken, the card preview is blank.
 
 ════════════════════════════════════════════════════════════
 ABSOLUTE HARD REQUIREMENTS — NEVER VIOLATE THESE
@@ -41,75 +68,84 @@ ABSOLUTE HARD REQUIREMENTS — NEVER VIOLATE THESE
    directly into a Shopify Custom Liquid section or .liquid file.
 
 ════════════════════════════════════════════════════════════
-ARCHITECTURE — HOW THIS LIBRARY WORKS
-════════════════════════════════════════════════════════════
-
-The editor pipeline:
-
-  config (from controls)
-       ↓
-  getCode(config)          ← returns pure HTML/CSS/JS string
-       ↓
-  injected into <iframe srcdoc="...">   ← live preview
-       ↓
-  same string copied on "Copy Code" button
-
-This means getCode() IS the source of truth.
-The React JSX file just calls getCode() and passes it to the iframe.
-
-════════════════════════════════════════════════════════════
 FILE A — React Component JSX
 ════════════════════════════════════════════════════════════
 
 Path: src/components/ui/[category]/[Name]V[N].jsx
 
-The component file must follow this EXACT pattern
-(copy FooterV1.jsx as the reference):
+EXACT PATTERN TO FOLLOW — copy this structure precisely:
 
 ─────────────────────────────────────────────────────────────
-// Named export — used by generateComponentCode.js
-export function get[Name]V[N]Code(config) {
+// Named export — used by registry and generateComponentCode.js
+export function get[Name]V[N]Code(config = {}) {
+  // Destructure every config key with a fallback default.
+  // Use the exact literal values from the original component.
+  const bgColor       = config.bgColor       || "#ffffff";
+  const headingText   = config.headingText   || "Default Heading";
+  const accentColor   = config.accentColor   || "#2563eb";
+  // ... add all your config keys here
+
   return `
 <style>
-  /* ── PASTE YOUR EXACT CSS HERE ──
-     Replace only literal values that need to be dynamic
-     with ${config.keyName} template variables.
-     Example: background-color: #111 → background-color: ${config.bgColor}
-     Keep ALL selectors, media queries, keyframes UNCHANGED. */
+  /*
+   * PASTE YOUR EXACT CSS HERE.
+   * Replace only literal values that need to be dynamic
+   * with \${varName} template variables.
+   *
+   * Example:
+   *   background-color: #111;   →   background-color: \${bgColor};
+   *   color: #2563eb;           →   color: \${accentColor};
+   *
+   * Keep ALL of these UNCHANGED:
+   *   - CSS selectors and class names
+   *   - Media query breakpoints
+   *   - Keyframe names and animation timings
+   *   - Layout properties (display, grid, flex, position)
+   *   - calc() expressions (they are safe, no escaping needed)
+   */
 </style>
 
-<!-- ── PASTE YOUR EXACT HTML HERE ──
-     Replace only literal text/URLs/values with ${config.keyName}.
-     Keep ALL class names, IDs, aria-* attributes, data-* UNCHANGED. -->
+<!-- PASTE YOUR EXACT HTML HERE.
+     Replace only visible text, URLs, and values with \${varName}.
+     Keep ALL class names, IDs, aria-* and data-* UNCHANGED. -->
 
 <script>
-  /* ── PASTE YOUR EXACT JS HERE ──
-     Replace only literal values with ${config.keyName} if needed.
-     Keep ALL event listeners, DOM selectors, logic UNCHANGED. */
+  /*
+   * PASTE YOUR EXACT JS HERE.
+   * Replace only literal config-driven values with \${varName}.
+   * Keep ALL event listeners, DOM queries, and logic UNCHANGED.
+   *
+   * ESCAPING RULES inside this template literal:
+   *   Original JS has:          Write it as:
+   *   \`backtick string\`         \\\`backtick string\\\`
+   *   \${someJsVar}               \\\${someJsVar}
+   *   "regular string"           "regular string"   ← safe, no change
+   *   calc(100% - 20px)          calc(100% - 20px)  ← safe, no change
+   *   config-driven value        \${varName}         ← interpolated normally
+   */
 </script>
   `;
 }
 
-// Default export — React component used by the editor canvas
+// Default export — React wrapper used by the registry.
+// ALWAYS returns null — the editor and card preview render
+// via getCode() → iframe, NOT via this JSX component directly.
 export default function [Name]V[N]({ config }) {
-  // This component only exists to satisfy the registry import.
-  // The editor renders via getCode() → iframe, not this JSX directly.
   return null;
 }
 ─────────────────────────────────────────────────────────────
 
-IMPORTANT NOTES FOR THE JSX FILE:
-- The default export component body is always: return null;
-  Because the canvas uses getCode() → iframe, not LiveComponent JSX.
+CRITICAL RULES FOR FILE A:
+- getCode() MUST be a NAMED export (export function get...)
+- The default export MUST always return null — no JSX, no styles
 - getCode() must return ONE complete string containing:
     <style>...</style>
     HTML markup
     <script>...</script>
-- All config values are interpolated using template literals: ${config.key}
-- Use template literals for the entire return string (backtick string).
-- If the CSS or JS contains backticks, escape them as \`.
-- If the CSS or JS contains ${...} that are NOT config variables
-  (e.g. CSS calc() or JS template literals), escape them as \${...}.
+- Destructure ALL config keys at the top of getCode() with fallbacks
+- All config values are injected using template literals: ${varName}
+- Every key destructured inside getCode() MUST also exist in defaultConfig
+- If the original component has NO JavaScript, omit the <script> block entirely
 
 ════════════════════════════════════════════════════════════
 FILE B — Registry Entry
@@ -117,40 +153,58 @@ FILE B — Registry Entry
 
 Path: src/registry/[category].registry.js
 
-REGISTRY SHAPE — follow this exact structure:
+EXACT PATTERN TO FOLLOW:
 
 ─────────────────────────────────────────────────────────────
+// Import: default export (component) + named export (getCode)
+// Both come from the SAME file.
 import [Name]V[N], { get[Name]V[N]Code } from "../components/ui/[category]/[Name]V[N]";
 
 const [category]Registry = {
-  slug: "[category-slug]",
-  title: "[Category Title]",
+  slug: "[category-slug]",        // e.g. "hero", "footer", "pricing"
+  title: "[Category Title]",      // e.g. "Hero", "Footer", "Pricing"
   variants: [
     {
-      id: "[category-slug]-v[N]",
-      name: "[Category] — [Variant Label]",
-      description: "Short description",
+      id: "[category-slug]-v[N]", // e.g. "hero-v1", "footer-v3"
+      name: "[Category] — [Variant Label]",  // e.g. "Hero — Centered"
+      description: "One sentence describing what this variant looks like.",
       tags: ["tag1", "tag2"],
-      component: [Name]V[N],
-      getCode: get[Name]V[N]Code,
+      component: [Name]V[N],         // ← the default export (returns null)
+      getCode: get[Name]V[N]Code,    // ← REQUIRED — used for card preview + editor + copy
       defaultConfig: {
-        // All config keys with sensible default values
-        // Use the exact literal values from the original component
-        keyName: "default value",
+        // Every key here MUST be used inside getCode().
+        // Every key used in getCode() MUST be listed here.
+        // Use the exact literal values from the original component.
+        bgColor:      "#ffffff",
+        headingText:  "Default Heading",
+        accentColor:  "#2563eb",
+        // ... all your config keys
       },
       accordions: [
         {
-          id: "section-id",
+          id: "colors",
           icon: "fa-palette",
-          iconBg: "#HEX",
-          iconColor: "#HEX",
-          title: "Section Title",
-          subtitle: "What this group customizes",
+          iconBg: "#ede9fe",
+          iconColor: "#7c3aed",
+          title: "Colors",
+          subtitle: "Background, text, and accent colors",
           controls: [
-            { type: "text",  label: "Label", key: "configKey" },
-            { type: "color", label: "Label", key: "configKey" },
+            { type: "color", label: "Background", key: "bgColor" },
+            { type: "color", label: "Accent",     key: "accentColor" },
           ],
         },
+        {
+          id: "content",
+          icon: "fa-font",
+          iconBg: "#dbeafe",
+          iconColor: "#1d4ed8",
+          title: "Content",
+          subtitle: "Headings and body text",
+          controls: [
+            { type: "text", label: "Heading", key: "headingText" },
+          ],
+        },
+        // Add more accordion sections as needed
       ],
     },
   ],
@@ -160,23 +214,25 @@ export default [category]Registry;
 ─────────────────────────────────────────────────────────────
 
 REGISTRY RULES:
-- Export as DEFAULT (not named) — import in componentRegistry.js
-  uses: import [category]Registry from "./[category].registry"
+- Export as DEFAULT (not named) — componentRegistry.js imports it as default
+- getCode property is REQUIRED on every variant — without it the card
+  preview will be blank and the editor will crash with "getCode is not a function"
 - Every config key in defaultConfig MUST appear in getCode()
-  and vice versa — no orphan keys.
-- accordion controls cover every config key exactly once.
-- Use only these icon strings (already registered in icons.js):
-    "fa-font"            → text / labels
-    "fa-palette"         → colors
-    "fa-square"          → backgrounds / blocks
-    "fa-tag"             → brand / logo
-    "fa-heading"         → headings
-    "fa-fill-drip"       → fill colors
-    "fa-magnifying-glass"→ search
-    "fa-layer-group"     → layout / sections
-    "fa-image"           → images / media
-    "fa-bars-staggered"  → navigation / links
-  If you genuinely need a new icon, write:
+- Every ${config.key} used in getCode() MUST exist in defaultConfig
+- No orphan keys in either direction
+- accordion controls must cover every config key exactly once
+- Use ONLY these icon strings (already registered in icons.js):
+    "fa-font"             → text / labels
+    "fa-palette"          → colors
+    "fa-square"           → backgrounds / blocks
+    "fa-tag"              → brand / logo
+    "fa-heading"          → headings
+    "fa-fill-drip"        → fill colors
+    "fa-magnifying-glass" → search
+    "fa-layer-group"      → layout / sections
+    "fa-image"            → images / media
+    "fa-bars-staggered"   → navigation / links
+  If you need an icon NOT in this list, write:
     ⚠️ NEW ICON NEEDED: "fa-quote-left" — add to icons.js manually
 
 ════════════════════════════════════════════════════════════
@@ -185,36 +241,65 @@ FILE C — generateComponentCode.js
 
 Path: src/components/editor/generateComponentCode.js
 
-Add ONE import and ONE case for the new variant:
+Add ONE import at the top and ONE case in the switch.
+Do NOT show the entire file — show only the lines to add.
 
 ─────────────────────────────────────────────────────────────
-// Add import:
+// ADD this import at the top with the other imports:
 import { get[Name]V[N]Code } from "../ui/[category]/[Name]V[N]";
 
-// Add case inside the switch:
+// ADD this case inside the switch(variantId) statement:
 case "[category-slug]-v[N]":
   return get[Name]V[N]Code(config);
 ─────────────────────────────────────────────────────────────
 
+RULE: The case string MUST exactly match the variant id in the registry.
+Example: if registry has id: "hero-v2" then case must be "hero-v2".
+
 ════════════════════════════════════════════════════════════
-FILE D — componentRegistry.js  (only if NEW category)
+FILE D — componentRegistry.js (NEW CATEGORY ONLY)
 ════════════════════════════════════════════════════════════
 
 Path: src/registry/componentRegistry.js
 
-Only needed when adding a brand new category (not a new variant
-inside an existing category).
+Only generate this file's changes if the category is BRAND NEW.
+If adding a variant to an existing category, skip this file entirely.
 
 ─────────────────────────────────────────────────────────────
-// Add import:
+// ADD this import at the top:
 import [category]Registry from "./[category].registry";
 
-// Add to registry array:
-const registry = [...existing, [category]Registry];
+// ADD to the registry array (keep all existing entries):
+const registry = [
+  ...existingRegistries,
+  [category]Registry,     // ← add here
+];
 ─────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════
-CONFIG KEY NAMING RULES
+FILE E — category index.js barrel file
+════════════════════════════════════════════════════════════
+
+Path: src/components/ui/[category]/index.js
+
+Every variant's component AND getCode function must be
+re-exported from the barrel file so the registry can import
+them cleanly from one path.
+
+─────────────────────────────────────────────────────────────
+// If adding to an EXISTING category, add these two lines:
+export { default as [Name]V[N] } from "./[Name]V[N]";
+export { get[Name]V[N]Code }    from "./[Name]V[N]";
+
+// Full example of what a complete barrel file looks like:
+export { default as HeroV1 }  from "./HeroV1";
+export { default as HeroV2 }  from "./HeroV2";
+export { getHeroV1Code }      from "./HeroV1";
+export { getHeroV2Code }      from "./HeroV2";
+─────────────────────────────────────────────────────────────
+
+════════════════════════════════════════════════════════════
+CONFIG KEY NAMING CONVENTION
 ════════════════════════════════════════════════════════════
 
 Use clear camelCase keys. Follow this convention:
@@ -224,39 +309,25 @@ Use clear camelCase keys. Follow this convention:
   Text:        headingText, subheadingText, bodyText,
                btnLabel, placeholderText, copyrightText
   URLs:        facebookUrl, instagramUrl, logoUrl, heroImageUrl
-  Columns:     col2Heading, col2Link1, col2Link2 ...
+  Columns:     col2Heading, col2Link1Label, col2Link1Url ...
   Booleans:    showBadge, showNewsletter (use "toggle" control type)
-  Numbers:     paddingTop, fontSize (use "range" control type if supported)
+  Numbers:     paddingTop, fontSize (use "range" control type)
 
 ════════════════════════════════════════════════════════════
-ESCAPING RULES INSIDE getCode() TEMPLATE LITERAL
+WHAT TO MAKE DYNAMIC vs KEEP HARDCODED
 ════════════════════════════════════════════════════════════
 
-Inside the backtick template string returned by getCode():
-
-  Original code has:        Write it as:
-  ─────────────────────     ─────────────────────────────
-  `backtick`                \`backtick\`
-  ${someJsVar}              \${someJsVar}
-  calc(100% - 20px)         calc(100% - 20px)  ← safe, no change
-  "string in JS"            "string in JS"     ← safe, no change
-  config-driven value       ${config.keyName}  ← interpolated normally
-
-════════════════════════════════════════════════════════════
-WHAT TO IDENTIFY AS DYNAMIC (config-driven)
-════════════════════════════════════════════════════════════
-
-Make these dynamic — replace with config variables:
+Make DYNAMIC — replace with ${config.key}:
   ✅ Brand name / logo text
   ✅ All visible text (headings, body copy, button labels, placeholders)
   ✅ All colors (backgrounds, text, borders, accents)
   ✅ All URLs (social links, image sources, hrefs)
-  ✅ Navigation / link labels
+  ✅ Navigation link labels and URLs
   ✅ Copyright text
-  ✅ CSS custom property values in :root { }
+  ✅ CSS custom property values inside :root { }
 
-Keep these hardcoded — do NOT make them config-driven:
-  ❌ CSS selectors and class names
+Keep HARDCODED — do NOT make config-driven:
+  ❌ CSS class names and selectors
   ❌ HTML structural attributes (role, aria-controls, id, type)
   ❌ JS logic, DOM queries, event listener callbacks
   ❌ Keyframe names and animation timings
@@ -264,67 +335,56 @@ Keep these hardcoded — do NOT make them config-driven:
   ❌ CSS layout properties (display, grid, flex, position)
 
 ════════════════════════════════════════════════════════════
+ESCAPING REFERENCE — inside getCode() template literal
+════════════════════════════════════════════════════════════
+
+  What your original code has:    How to write it inside getCode():
+  ──────────────────────────────  ──────────────────────────────────
+  `backtick string`               \`backtick string\`
+  ${anyJsVariable}                \${anyJsVariable}
+  calc(100% - 20px)               calc(100% - 20px)     ← safe, no change
+  "regular JS string"             "regular JS string"   ← safe, no change
+  a config-driven value           ${varName}            ← interpolated normally
+
+════════════════════════════════════════════════════════════
 OUTPUT ORDER — generate files in this exact sequence
 ════════════════════════════════════════════════════════════
 
+Generate all 4 files in this order every time:
+
 1. src/components/ui/[category]/[Name]V[N].jsx
-   — getCode(config) export first, then default export
+   — getCode(config) named export first
+   — default export (return null) second
 
 2. src/registry/[category].registry.js
-   — full registry object with defaultConfig + accordions
+   — full registry with ALL variants (existing + new)
+   — every variant must have: id, name, description, tags,
+     component, getCode, defaultConfig, accordions
 
 3. src/components/editor/generateComponentCode.js
-   — show ONLY the new import line + new case to add
+   — show ONLY the new import line + new switch case to add
 
-4. src/registry/componentRegistry.js
-   — show ONLY if new category: the import + registry array change
+4. src/components/ui/[category]/index.js
+   — show the full updated barrel file with all exports
+
+5. src/registry/componentRegistry.js
+   — show ONLY if this is a NEW category (import + array entry)
 
 ════════════════════════════════════════════════════════════
-VERIFICATION CHECKLIST — check before finishing
+VERIFICATION CHECKLIST — verify before outputting code
 ════════════════════════════════════════════════════════════
 
-Before outputting code, verify:
-  [ ] Every config key in defaultConfig exists in getCode()
-  [ ] Every interpolated ${config.key} in getCode() exists in defaultConfig
-  [ ] No backticks or \${} inside getCode() template are unescaped
-  [ ] getCode() output contains NO React, NO JSX, NO Tailwind classes
-  [ ] Default export component returns null
-  [ ] Registry uses export default (not named export)
-  [ ] generateComponentCode.js case ID matches registry variant id exactly
+  [ ] getCode() is a NAMED export (export function get...)
+  [ ] Default export always returns null — no JSX markup
+  [ ] Every config key destructured in getCode() exists in defaultConfig
+  [ ] Every key in defaultConfig is used inside getCode()
+  [ ] No backticks or ${} inside getCode() template are unescaped
+  [ ] getCode() output has zero React, zero JSX, zero Tailwind
+  [ ] Registry variant has getCode: get[Name]V[N]Code — NOT missing
+  [ ] Registry uses export default — not named export
+  [ ] generateComponentCode.js case ID exactly matches registry variant id
   [ ] All accordion controls map to a real config key
-
-════════════════════════════════════════════════════════════
-PLACEMENT GUIDE (step by step)
-════════════════════════════════════════════════════════════
-
-After the AI gives you the code, place files in this order:
-
-STEP 1 — Component file
-  → Create: src/components/ui/[category]/[Name]V[N].jsx
-  → Paste the entire JSX file output
-
-STEP 2 — Registry file
-  → If NEW category: create src/registry/[category].registry.js
-  → If EXISTING category: open the existing file and add the new
-    variant object inside the variants: [ ] array
-
-STEP 3 — generateComponentCode.js
-  → Open: src/components/editor/generateComponentCode.js
-  → Add the import line at the top with other imports
-  → Add the case inside the switch statement
-
-STEP 4 — componentRegistry.js  (new category only)
-  → Open: src/registry/componentRegistry.js
-  → Add import line at the top
-  → Add the registry to the registry array
-
-STEP 5 — Test
-  → npm run dev
-  → Open the editor, select your category and new variant
-  → Change a color/text control → preview should update live
-  → Click Copy Code → paste into a blank .html file
-  → Open in browser — behavior, layout, and responsiveness
-    must match the original component 100%
+  [ ] index.js barrel exports both the component AND its getCode function
 
 ════════════════════════════════════════════════════════════
 MY COMPONENT — fill in below
@@ -332,9 +392,10 @@ MY COMPONENT — fill in below
 
 Category name  : [e.g. Footer, Hero, Pricing]
 Category slug  : [e.g. footer, hero, pricing]
-Variant number : [e.g. V2 — check existing variants first]
+Variant number : [e.g. V2 — check existing registry file first]
 Variant label  : [e.g. "Dark Enterprise", "Gradient CTA"]
 Variant tags   : [e.g. dark, newsletter, accordion, mobile]
+Is new category: [Yes / No]
 
 Paste your EXACT component code below.
 DO NOT refactor. DO NOT convert to Tailwind.
@@ -347,6 +408,49 @@ ONLY insert config variables where needed.
 <!-- your HTML here -->
 
 <script>
-  // your JS here
+  // your JS here (delete this block if component has no JS)
 </script>
+```
+
+---
+
+## Placement Guide — After You Get the Code
+
+```
+STEP 1 — Component file
+  Create or replace:
+  src/components/ui/[category]/[Name]V[N].jsx
+  Paste the complete JSX file output.
+
+STEP 2 — Registry file
+  If NEW category:
+    Create: src/registry/[category].registry.js
+    Paste the full registry file output.
+  If EXISTING category:
+    Open the existing registry file.
+    Add the new variant object inside the variants: [ ] array.
+    Make sure the import for the new variant is added at the top.
+
+STEP 3 — generateComponentCode.js
+  Open: src/components/editor/generateComponentCode.js
+  Add the import line at the top with the other imports.
+  Add the case inside the switch statement.
+
+STEP 4 — index.js barrel file
+  Open: src/components/ui/[category]/index.js
+  Add the two new export lines (component + getCode).
+
+STEP 5 — componentRegistry.js (new category only)
+  Open: src/registry/componentRegistry.js
+  Add import at the top.
+  Add the registry to the array.
+
+STEP 6 — Test
+  npm run dev
+  → Go to /components page
+  → The new variant card should show an iframe preview
+  → Click the card → editor opens, iframe renders component
+  → Change any color/text control → preview updates live
+  → Click Copy Code → paste into a blank .html file
+  → Open in browser → must match original 100%
 ```
