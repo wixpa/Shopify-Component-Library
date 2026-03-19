@@ -15,6 +15,8 @@ import { getHeroV1Code } from "../ui/hero/HeroV1";
 import { getHeroV2Code } from "../ui/hero/HeroV2";
 import { getHeroV3Code } from "../ui/hero/HeroV3";
 import { getProductMainSecV1Code } from "../ui/product-main-sec/ProductMainSecV1";
+import { getProductMainSecV2Code } from "../ui/product-main-sec/ProductMainSecV2";
+import { getProductMainSecV3Code } from "../ui/product-main-sec/ProductMainSecV3";
 // Comment out FooterV1 until it exists
 // import { getFooterV1Code } from "../ui/footer/FooterV1";
 import { getFooterV2Code } from "../ui/footer/FooterV2";
@@ -38,6 +40,10 @@ const generateComponentCode = (variantId, config) => {
          return getHeroV3Code(config);
       case "product-main-sec-v1":
          return getProductMainSecV1Code(config);
+      case "product-main-sec-v2":
+         return getProductMainSecV2Code(config);
+      case "product-main-sec-v3":
+         return getProductMainSecV3Code(config);
       // Comment out footer-v1 case until it exists
       // case "footer-v1":
       //   return getFooterV1Code(config);
