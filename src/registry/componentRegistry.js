@@ -14,11 +14,16 @@
 
 import headersRegistry from "./headers.registry";
 import heroRegistry from "./hero.registry";
-import productCardsRegistry from "./productCards.registry";
 import footerRegistry from "./footer.registry";
+import productMainSecRegistry from "./productMainSec.registry";
 
 // ── Assemble registry array ───────────────────────────────────────────────────
-const registry = [headersRegistry, heroRegistry, productCardsRegistry, footerRegistry];
+const registry = [
+   headersRegistry,
+   heroRegistry,
+   footerRegistry,
+   productMainSecRegistry,
+];
 
 // ── Helper functions ──────────────────────────────────────────────────────────
 
