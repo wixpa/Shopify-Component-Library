@@ -17,6 +17,7 @@ import heroRegistry from "./hero.registry";
 import footerRegistry from "./footer.registry";
 import productMainSecRegistry from "./productMainSec.registry";
 import faqsRegistry from "./faqs.registry";
+import testimonialsRegistry from "./testimonials.registry";
 
 // ── Assemble registry array ───────────────────────────────────────────────────
 const registry = [
@@ -24,7 +25,8 @@ const registry = [
    heroRegistry,
    footerRegistry,
    productMainSecRegistry,
-   faqsRegistry
+   faqsRegistry,
+   testimonialsRegistry,
 ];
 
 // ── Helper functions ──────────────────────────────────────────────────────────

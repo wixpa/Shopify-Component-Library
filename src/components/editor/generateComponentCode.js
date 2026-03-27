@@ -27,6 +27,7 @@ import { getFaqV1Code } from "../ui/faqs/FaqV1";
 import { getFaqV2Code } from "../ui/faqs/FaqV2";
 import { getFaqV3Code } from "../ui/faqs/FaqV3";
 import { getFaqV4Code } from "../ui/faqs/FaqV4";
+import { getTestimonialV1Code } from "../ui/testimonials/TestimonialV1";
 
 const generateComponentCode = (variantId, config) => {
    switch (variantId) {
@@ -62,6 +63,8 @@ const generateComponentCode = (variantId, config) => {
          return getFaqV3Code(config);
       case "faq-v4":
          return getFaqV4Code(config);
+      case "testimonial-v1":
+         return getTestimonialV1Code(config);
       default:
          return `<!-- No code generator found for variant: "${variantId}" -->`;
    }
