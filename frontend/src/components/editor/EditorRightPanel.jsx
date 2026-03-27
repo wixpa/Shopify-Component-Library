@@ -7,10 +7,10 @@ import HowToSection from "./HowToSection";
 // ── Tailwind Classes ───────────────────────────────────────────
 
 const panel = [
-   "w-[292px] min-w-[292px] h-full",
-   "bg-white border-l border-[#e5e7eb]",
+   "w-full md:w-[292px] md:min-w-[292px] min-w-0 h-[45vh] md:h-full",
+   "bg-white border-t md:border-l border-[#e5e7eb]",
    "flex flex-col overflow-hidden",
-   "shadow-[-2px_0_8px_rgba(0,0,0,0.04)]",
+   "shadow-none md:shadow-[-2px_0_8px_rgba(0,0,0,0.04)]",
    "flex-shrink-0",
 ].join(" ");
 
