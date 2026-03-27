@@ -1,4 +1,5 @@
 import FaqV1, { getFaqV1Code } from "../components/ui/faqs/FaqV1";
+import FaqV2, { getFaqV2Code } from "../components/ui/faqs/FaqV2";
 
 const faqsRegistry = {
   id: "faqs",
@@ -11,6 +12,8 @@ const faqsRegistry = {
   description:
     "Accordion-style FAQ sections to answer common customer questions and reduce support load.",
   variants: [
+
+    // ── FAQ V1 — Minimal Accordion
     {
       id: "faq-v1",
       name: "FAQ — Minimal Accordion",
@@ -114,6 +117,128 @@ const faqsRegistry = {
         },
       ],
     },
+
+    // ── FAQ V2 — Chevron Accordion with SVG Icon
+    {
+      id: "faq-v2",
+      name: "FAQ — Chevron with Icon",
+      description:
+        "Polished accordion FAQ with SVG chat icon, animated chevron, and accordion-mode (one open at a time).",
+      tags: ["chevron", "svg icon", "accordion", "light", "polished"],
+      component: FaqV2,
+      getCode: getFaqV2Code,
+      defaultConfig: {
+        bgColor:       "#ffffff",
+        headingText:   "FAQs",
+        headingColor:  "#333333",
+        borderColor:   "#e0e0e0",
+        questionColor: "#333333",
+        answerColor:   "#666666",
+        iconColor:     "#444444",
+        chevronColor:  "#999999",
+        faq1Q: "What makes your store unique?",
+        faq1A: "Our uniqueness lies in our commitment to clean formulations that provide heavy-duty results without the heavy-duty feel.",
+        faq2Q: "How can I determine the right products for my needs?",
+        faq2A: "You can take our 2-minute quiz on our homepage, or chat live with one of our specialists available 24/7.",
+        faq3Q: "Do you offer samples of your products?",
+        faq3A: "Yes! Every order over $50 includes two complimentary deluxe samples of your choice at checkout.",
+        faq4Q: "Can I get assistance with choosing the right options?",
+        faq4A: "Absolutely. Upload a photo to our tool for an instant AI recommendation or request a manual review from our team.",
+        faq5Q: "Are your products ethically made?",
+        faq5A: "Yes, we are 100% certified. We never compromise on ethical standards at any stage of product development.",
+      },
+      accordions: [
+        {
+          id: "colors",
+          icon: "fa-palette",
+          iconBg: "#ede9fe",
+          iconColor: "#7c3aed",
+          title: "Colors",
+          subtitle: "Background, text, borders, and icon colors",
+          controls: [
+            { type: "color", label: "Background",     key: "bgColor" },
+            { type: "color", label: "Heading Color",  key: "headingColor" },
+            { type: "color", label: "Question Color", key: "questionColor" },
+            { type: "color", label: "Answer Color",   key: "answerColor" },
+            { type: "color", label: "Border Color",   key: "borderColor" },
+            { type: "color", label: "Icon Color",     key: "iconColor" },
+            { type: "color", label: "Chevron Color",  key: "chevronColor" },
+          ],
+        },
+        {
+          id: "heading",
+          icon: "fa-heading",
+          iconBg: "#dbeafe",
+          iconColor: "#1d4ed8",
+          title: "Heading",
+          subtitle: "Section title text",
+          controls: [
+            { type: "text", label: "Heading Text", key: "headingText" },
+          ],
+        },
+        {
+          id: "faq1",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 1",
+          subtitle: "Question and answer for item 1",
+          controls: [
+            { type: "text", label: "Question 1", key: "faq1Q" },
+            { type: "text", label: "Answer 1",   key: "faq1A" },
+          ],
+        },
+        {
+          id: "faq2",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 2",
+          subtitle: "Question and answer for item 2",
+          controls: [
+            { type: "text", label: "Question 2", key: "faq2Q" },
+            { type: "text", label: "Answer 2",   key: "faq2A" },
+          ],
+        },
+        {
+          id: "faq3",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 3",
+          subtitle: "Question and answer for item 3",
+          controls: [
+            { type: "text", label: "Question 3", key: "faq3Q" },
+            { type: "text", label: "Answer 3",   key: "faq3A" },
+          ],
+        },
+        {
+          id: "faq4",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 4",
+          subtitle: "Question and answer for item 4",
+          controls: [
+            { type: "text", label: "Question 4", key: "faq4Q" },
+            { type: "text", label: "Answer 4",   key: "faq4A" },
+          ],
+        },
+        {
+          id: "faq5",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 5",
+          subtitle: "Question and answer for item 5",
+          controls: [
+            { type: "text", label: "Question 5", key: "faq5Q" },
+            { type: "text", label: "Answer 5",   key: "faq5A" },
+          ],
+        },
+      ],
+    },
+
   ],
 };
 
