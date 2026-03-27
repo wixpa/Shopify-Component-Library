@@ -1,5 +1,6 @@
 import FaqV1, { getFaqV1Code } from "../components/ui/faqs/FaqV1";
 import FaqV2, { getFaqV2Code } from "../components/ui/faqs/FaqV2";
+import FaqV3, { getFaqV3Code } from "../components/ui/faqs/FaqV3";
 
 const faqsRegistry = {
   id: "faqs",
@@ -234,6 +235,139 @@ const faqsRegistry = {
           controls: [
             { type: "text", label: "Question 5", key: "faq5Q" },
             { type: "text", label: "Answer 5",   key: "faq5A" },
+          ],
+        },
+      ],
+    },
+
+    // ── FAQ V3 — Uppercase Bold Accordion
+    {
+      id: "faq-v3",
+      name: "FAQ — Uppercase Bold",
+      description:
+        "Bold uppercase accordion FAQ with CSS-only plus/minus icon, first item open by default, and accordion-mode toggle.",
+      tags: ["uppercase", "bold", "accordion", "light", "minimal", "open default"],
+      component: FaqV3,
+      getCode: getFaqV3Code,
+      defaultConfig: {
+        bgColor:       "#ffffff",
+        headingText:   "FAQs",
+        headingColor:  "#121212",
+        borderColor:   "#e8e8e8",
+        questionColor: "#121212",
+        answerColor:   "#444444",
+        iconColor:     "#121212",
+        faq1Q: "How long does an order take to arrive?",
+        faq1A: "International orders normally arrive within 2-4 weeks of shipping. Please note that these orders need to pass through the customs office in your country before it will be released for final delivery, which can occasionally cause additional delays.",
+        faq2Q: "How do I set up a subscription order?",
+        faq2A: "Simply select the Subscribe & Save option on the product page, choose your frequency, and checkout as normal.",
+        faq3Q: "How to return my items?",
+        faq3A: "Visit our Returns Portal within 30 days of purchase to generate a prepaid shipping label.",
+        faq4Q: "How can I choose the right size for me?",
+        faq4A: "Check our size guide link located next to the size selection dropdown on every product page.",
+        faq5Q: "Which payment methods do you accept?",
+        faq5A: "We accept Visa, Mastercard, American Express, PayPal, and Apple Pay.",
+        faq6Q: "How can I track my order?",
+        faq6A: "You will receive a tracking link via email as soon as your order has been processed and shipped.",
+      },
+      accordions: [
+        {
+          id: "colors",
+          icon: "fa-palette",
+          iconBg: "#ede9fe",
+          iconColor: "#7c3aed",
+          title: "Colors",
+          subtitle: "Background, text, borders, and icon colors",
+          controls: [
+            { type: "color", label: "Background",     key: "bgColor" },
+            { type: "color", label: "Heading Color",  key: "headingColor" },
+            { type: "color", label: "Question Color", key: "questionColor" },
+            { type: "color", label: "Answer Color",   key: "answerColor" },
+            { type: "color", label: "Border Color",   key: "borderColor" },
+            { type: "color", label: "Icon Color",     key: "iconColor" },
+          ],
+        },
+        {
+          id: "heading",
+          icon: "fa-heading",
+          iconBg: "#dbeafe",
+          iconColor: "#1d4ed8",
+          title: "Heading",
+          subtitle: "Section title text",
+          controls: [
+            { type: "text", label: "Heading Text", key: "headingText" },
+          ],
+        },
+        {
+          id: "faq1",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 1",
+          subtitle: "Question and answer for item 1",
+          controls: [
+            { type: "text", label: "Question 1", key: "faq1Q" },
+            { type: "text", label: "Answer 1",   key: "faq1A" },
+          ],
+        },
+        {
+          id: "faq2",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 2",
+          subtitle: "Question and answer for item 2",
+          controls: [
+            { type: "text", label: "Question 2", key: "faq2Q" },
+            { type: "text", label: "Answer 2",   key: "faq2A" },
+          ],
+        },
+        {
+          id: "faq3",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 3",
+          subtitle: "Question and answer for item 3",
+          controls: [
+            { type: "text", label: "Question 3", key: "faq3Q" },
+            { type: "text", label: "Answer 3",   key: "faq3A" },
+          ],
+        },
+        {
+          id: "faq4",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 4",
+          subtitle: "Question and answer for item 4",
+          controls: [
+            { type: "text", label: "Question 4", key: "faq4Q" },
+            { type: "text", label: "Answer 4",   key: "faq4A" },
+          ],
+        },
+        {
+          id: "faq5",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 5",
+          subtitle: "Question and answer for item 5",
+          controls: [
+            { type: "text", label: "Question 5", key: "faq5Q" },
+            { type: "text", label: "Answer 5",   key: "faq5A" },
+          ],
+        },
+        {
+          id: "faq6",
+          icon: "fa-font",
+          iconBg: "#dcfce7",
+          iconColor: "#16a34a",
+          title: "FAQ Item 6",
+          subtitle: "Question and answer for item 6",
+          controls: [
+            { type: "text", label: "Question 6", key: "faq6Q" },
+            { type: "text", label: "Answer 6",   key: "faq6A" },
           ],
         },
       ],
