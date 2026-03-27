@@ -17,8 +17,6 @@ import { getHeroV3Code } from "../ui/hero/HeroV3";
 import { getProductMainSecV1Code } from "../ui/product-main-sec/ProductMainSecV1";
 import { getProductMainSecV2Code } from "../ui/product-main-sec/ProductMainSecV2";
 import { getProductMainSecV3Code } from "../ui/product-main-sec/ProductMainSecV3";
-// Comment out FooterV1 until it exists
-// import { getFooterV1Code } from "../ui/footer/FooterV1";
 import { getFooterV2Code } from "../ui/footer/FooterV2";
 import { getFooterV3Code } from "../ui/footer/FooterV3";
 import { getFooterV4Code } from "../ui/footer/FooterV4";
@@ -28,6 +26,7 @@ import { getHeaderV2Code } from "../ui/headers/HeaderV2";
 import { getFaqV1Code } from "../ui/faqs/FaqV1";
 import { getFaqV2Code } from "../ui/faqs/FaqV2";
 import { getFaqV3Code } from "../ui/faqs/FaqV3";
+import { getFaqV4Code } from "../ui/faqs/FaqV4";
 
 const generateComponentCode = (variantId, config) => {
    switch (variantId) {
@@ -47,9 +46,6 @@ const generateComponentCode = (variantId, config) => {
          return getProductMainSecV2Code(config);
       case "product-main-sec-v3":
          return getProductMainSecV3Code(config);
-      // Comment out footer-v1 case until it exists
-      // case "footer-v1":
-      //   return getFooterV1Code(config);
       case "footer-v2":
          return getFooterV2Code(config);
       case "footer-v3":
@@ -64,6 +60,8 @@ const generateComponentCode = (variantId, config) => {
          return getFaqV2Code(config);
       case "faq-v3":
          return getFaqV3Code(config);
+      case "faq-v4":
+         return getFaqV4Code(config);
       default:
          return `<!-- No code generator found for variant: "${variantId}" -->`;
    }
