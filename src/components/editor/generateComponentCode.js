@@ -25,6 +25,7 @@ import { getFooterV4Code } from "../ui/footer/FooterV4";
 import { getFooterV5Code } from "../ui/footer/FooterV5";
 import { getHeaderV1Code } from "../ui/headers/HeaderV1";
 import { getHeaderV2Code } from "../ui/headers/HeaderV2";
+import { getFaqV1Code } from "../ui/faqs/FaqV1";
 
 const generateComponentCode = (variantId, config) => {
    switch (variantId) {
@@ -55,6 +56,8 @@ const generateComponentCode = (variantId, config) => {
          return getFooterV4Code(config);
       case "footer-v5":
          return getFooterV5Code(config);
+      case "faq-v1":
+         return getFaqV1Code(config);
       default:
          return `<!-- No code generator found for variant: "${variantId}" -->`;
    }
