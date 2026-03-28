@@ -1,13 +1,32 @@
 import express from "express";
+import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import { accessRouter } from "./routes/access.routes.js";
+import { isOriginAllowed } from "./config.js";
 
 export function createApp() {
   const app = express();
 
-  app.use(helmet());
+  app.set("trust proxy", 1);
+
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin) return callback(null, true);
+        if (isOriginAllowed(origin)) return callback(null, true);
+        callback(null, false);
+      },
+      credentials: true,
+    }),
+  );
+
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    }),
+  );
 
   app.use(
     rateLimit({

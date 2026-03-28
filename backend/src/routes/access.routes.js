@@ -73,10 +73,9 @@ export const accessRouter = (express) => {
 
       res.cookie(config.cookieName, token, {
         httpOnly: true,
-        sameSite: "lax",
-        secure: false, // set to true behind HTTPS in production
+        sameSite: config.cookieSameSite,
+        secure: config.cookieSecure,
         path: "/",
-        // cookie TTL; we still rely on DB TTL for expiry correctness
         maxAge: config.sessionTtlDays * 24 * 60 * 60 * 1000,
       });
 

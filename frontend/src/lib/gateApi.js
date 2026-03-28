@@ -1,3 +1,5 @@
+import { apiUrl } from "./apiBase.js";
+
 const jsonErrorToMessage = (data) => {
   if (!data) return "Request failed.";
   if (typeof data.error === "string") return data.error;
@@ -6,7 +8,7 @@ const jsonErrorToMessage = (data) => {
 };
 
 export async function checkCopyAccessStatus() {
-  const res = await fetch("/api/access/status", {
+  const res = await fetch(apiUrl("/api/access/status"), {
     method: "GET",
     credentials: "include",
     headers: { "Accept": "application/json" },
@@ -18,7 +20,7 @@ export async function checkCopyAccessStatus() {
 }
 
 export async function submitEmailForCopyAccess(email) {
-  const res = await fetch("/api/access/email", {
+  const res = await fetch(apiUrl("/api/access/email"), {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
