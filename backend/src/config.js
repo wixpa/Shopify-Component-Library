@@ -10,13 +10,12 @@ dotenv.config({ path: process.env.DOTENV_PATH || defaultEnvPath });
 const isProd = process.env.NODE_ENV === "production";
 
 function parseFrontendOrigins() {
-  const raw = process.env.FRONTEND_ORIGIN || process.env.ALLOWED_ORIGINS || "";
-  const defaults = ["http://localhost:5173", "http://127.0.0.1:5173"];
-  const fromEnv = raw
-    .split(",")
+  const a = process.env.FRONTEND_ORIGIN || "";
+  const b = process.env.ALLOWED_ORIGINS || "";
+  const fromEnv = [...a.split(","), ...b.split(",")]
     .map((s) => s.trim())
     .filter(Boolean);
-  return [...new Set([...defaults, ...fromEnv])];
+  return [...new Set(fromEnv)];
 }
 
 const cookieSameSite = process.env.COOKIE_SAMESITE || (isProd ? "none" : "lax");

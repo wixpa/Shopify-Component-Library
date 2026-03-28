@@ -1,10 +1,15 @@
 /**
- * In production (Vercel), set VITE_BACKEND_URL to your Railway public URL, e.g.
- * https://your-service.up.railway.app — no trailing slash.
- * Leave unset for local dev so Vite proxies /api to the backend.
+ * VITE_BACKEND_URL is required (frontend/.env locally, Vercel env for deploy).
+ * No trailing slash, e.g. https://your-service.up.railway.app
  */
 export function apiUrl(path) {
-  const base = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
+  const raw = import.meta.env.VITE_BACKEND_URL;
+  if (typeof raw !== "string" || !raw.trim()) {
+    throw new Error(
+      "VITE_BACKEND_URL is required — set it in frontend/.env or Vercel project env.",
+    );
+  }
+  const base = raw.trim().replace(/\/$/, "");
   const p = path.startsWith("/") ? path : `/${path}`;
-  return base ? `${base}${p}` : p;
+  return `${base}${p}`;
 }

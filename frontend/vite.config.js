@@ -9,25 +9,34 @@ export default defineConfig(({ mode }) => {
 
   if (mode === "production" && !env.VITE_BACKEND_URL?.trim()) {
     console.warn(
-      "[vite] VITE_BACKEND_URL is not set. Set it in Vercel to your Railway public URL or API requests will fail.",
+      "[vite] VITE_BACKEND_URL is not set — production API calls will fail.",
     );
   }
 
-  const rawTarget = env.VITE_BACKEND_URL || "http://localhost:4000";
-  const target =
-    rawTarget.startsWith("http://") || rawTarget.startsWith("https://")
+  const rawTarget = env.VITE_BACKEND_URL?.trim();
+  if (!rawTarget) {
+    console.warn(
+      "[vite] VITE_BACKEND_URL is not set — dev /api proxy disabled. Add it to frontend/.env.",
+    );
+  }
+
+  const target = rawTarget
+    ? rawTarget.startsWith("http://") || rawTarget.startsWith("https://")
       ? rawTarget
-      : `https://${rawTarget}`;
+      : `https://${rawTarget}`
+    : null;
 
   return {
     plugins: [react()],
     server: {
-      proxy: {
-        "/api": {
-          target,
-          changeOrigin: true,
-        },
-      },
+      proxy: target
+        ? {
+            "/api": {
+              target,
+              changeOrigin: true,
+            },
+          }
+        : {},
     },
   };
 });

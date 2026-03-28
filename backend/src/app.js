@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import { accessRouter } from "./routes/access.routes.js";
 import { isOriginAllowed } from "./config.js";
+import { logCorsDecision } from "./envDebug.js";
 
 export function createApp() {
   const app = express();
@@ -14,8 +15,13 @@ export function createApp() {
   app.use(
     cors({
       origin(origin, callback) {
-        if (!origin) return callback(null, true);
-        if (isOriginAllowed(origin)) return callback(null, true);
+        if (!origin) {
+          logCorsDecision(origin, true);
+          return callback(null, true);
+        }
+        const allowed = isOriginAllowed(origin);
+        logCorsDecision(origin, allowed);
+        if (allowed) return callback(null, true);
         callback(null, false);
       },
       credentials: true,

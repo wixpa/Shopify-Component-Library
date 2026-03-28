@@ -1,16 +1,19 @@
 import { createApp } from "./app.js";
 import { connectMongo } from "./db.js";
 import { config } from "./config.js";
+import { logStartupEnv } from "./envDebug.js";
 
 async function main() {
   await connectMongo();
+
+  logStartupEnv();
 
   const app = createApp();
 
   app.listen(config.port, () => {
     // eslint-disable-next-line no-console
     console.log(
-      `[backend] Listening on http://localhost:${config.port} (Mongo connected)`,
+      `[backend] Listening on port ${config.port} (Mongo connected). Public URL must match FRONTEND_ORIGIN for CORS.`,
     );
   });
 }
